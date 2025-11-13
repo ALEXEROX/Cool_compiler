@@ -70,8 +70,8 @@
 /* Line 189 of yacc.c  */
 #line 1 "./Cool_code.y"
 
-#include "ast.h"
-#include "ast.c"
+#include "../Nodes/ast.h"
+#include "../Nodes/ast.c"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

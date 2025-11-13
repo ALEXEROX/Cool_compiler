@@ -1,9 +1,9 @@
 #include <locale.h>
 #include <stdio.h>
 
-#include "lex.yy.c"
-#include "Cool_code.tab.c"
-#include "ast_dot.c"
+#include "Lexer/lex.yy.c"
+#include "Parser/Cool_code.tab.c"
+#include "Dot/ast_dot.c"
 
 extern ProgramNode *program;
 
@@ -19,10 +19,10 @@ int main(int argc, char *argv[])
     //     printf("Enter full file name");
     //     scanf("%s", filename);
     // }
-    yyin = fopen("../source.cl", "r");
+    yyin = fopen("source.cl", "r");
     yyparse();
     save_ast_dot(program);
-    system("\"C:/Program Files/Graphviz/bin/dot.exe\" ./cool_dot.dot -Tsvg > out.svg");
+    system("Dot/dot.exe Dot/cool_dot.dot -Tsvg > dot.svg");
 
     return 0;
 }

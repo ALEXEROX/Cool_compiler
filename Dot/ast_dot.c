@@ -156,7 +156,7 @@ static int print_expr(FILE* out, ExprNode* expr) {
 }
 
 void save_ast_dot(ProgramNode* program) {
-    FILE* out = fopen("cool_dot.dot", "w");
+    FILE* out = fopen("Dot/cool_dot.dot", "w");
     if (!out) {
         fprintf(stderr, "Не удалось открыть cool_dot.dot для записи\n");
         return;

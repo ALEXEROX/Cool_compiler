@@ -474,7 +474,7 @@ char *yytext;
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "Cool_code.tab.h"
+#include "../Parser/Cool_code.tab.h"
 #define COMMENT 1
 #define STRING 2
 
