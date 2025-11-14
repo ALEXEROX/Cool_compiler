@@ -467,10 +467,10 @@ static yyconst short int yy_rule_linenum[65] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "./Cool.l"
+#line 1 "Cool.l"
 #define INITIAL 0
 #define YY_NEVER_INTERACTIVE 1
-#line 5 "./Cool.l"
+#line 5 "Cool.l"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -629,7 +629,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 13 "./Cool.l"
+#line 13 "Cool.l"
 
 
 
@@ -741,296 +741,296 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 24 "./Cool.l"
+#line 24 "Cool.l"
 ;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 25 "./Cool.l"
+#line 25 "Cool.l"
 { line+=yyleng; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 27 "./Cool.l"
+#line 27 "Cool.l"
 { return CLASS; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "./Cool.l"
+#line 28 "Cool.l"
 { return ELSE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 29 "./Cool.l"
+#line 29 "Cool.l"
 { return FI; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 30 "./Cool.l"
+#line 30 "Cool.l"
 { return IF; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 31 "./Cool.l"
+#line 31 "Cool.l"
 { return IN; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 32 "./Cool.l"
+#line 32 "Cool.l"
 { return INHERITS; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 33 "./Cool.l"
+#line 33 "Cool.l"
 { return LET; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 34 "./Cool.l"
+#line 34 "Cool.l"
 { return LOOP; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 35 "./Cool.l"
+#line 35 "Cool.l"
 { return POOL; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 36 "./Cool.l"
+#line 36 "Cool.l"
 { return THEN; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 37 "./Cool.l"
+#line 37 "Cool.l"
 { return WHILE; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 38 "./Cool.l"
+#line 38 "Cool.l"
 { return CASE; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 39 "./Cool.l"
+#line 39 "Cool.l"
 { return OF; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 40 "./Cool.l"
+#line 40 "Cool.l"
 { return ESAC; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 41 "./Cool.l"
+#line 41 "Cool.l"
 { return NEW; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 42 "./Cool.l"
+#line 42 "Cool.l"
 { return ISVOID; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 43 "./Cool.l"
+#line 43 "Cool.l"
 { return NOT; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 45 "./Cool.l"
+#line 45 "Cool.l"
 { return TRUE; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 46 "./Cool.l"
+#line 46 "Cool.l"
 { return FALSE; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 48 "./Cool.l"
+#line 48 "Cool.l"
 { yylval.intval=atoi(yytext); return INT_CONST; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 50 "./Cool.l"
+#line 50 "Cool.l"
 { yylval.str=(char *)malloc(strlen(yytext)+1); strcpy(yylval.str, yytext); return  TYPEID; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 51 "./Cool.l"
+#line 51 "Cool.l"
 { yylval.str=(char *)malloc(strlen(yytext)+1); strcpy(yylval.str, yytext); return OBJECTID; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 53 "./Cool.l"
+#line 53 "Cool.l"
 { return ASSIGN; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 54 "./Cool.l"
+#line 54 "Cool.l"
 { return DARROW; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 55 "./Cool.l"
+#line 55 "Cool.l"
 { return LE; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 56 "./Cool.l"
+#line 56 "Cool.l"
 { return '='; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 57 "./Cool.l"
+#line 57 "Cool.l"
 { return '<'; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 58 "./Cool.l"
+#line 58 "Cool.l"
 { return '+'; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 59 "./Cool.l"
+#line 59 "Cool.l"
 { return '-'; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 60 "./Cool.l"
+#line 60 "Cool.l"
 { return '*'; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 61 "./Cool.l"
+#line 61 "Cool.l"
 { return '/'; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 62 "./Cool.l"
+#line 62 "Cool.l"
 { return '('; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 63 "./Cool.l"
+#line 63 "Cool.l"
 { return ')'; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 64 "./Cool.l"
+#line 64 "Cool.l"
 { return '{'; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 65 "./Cool.l"
+#line 65 "Cool.l"
 { return '}'; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 66 "./Cool.l"
+#line 66 "Cool.l"
 { return ';'; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 67 "./Cool.l"
+#line 67 "Cool.l"
 { return ':'; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 68 "./Cool.l"
+#line 68 "Cool.l"
 { return ','; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 69 "./Cool.l"
+#line 69 "Cool.l"
 { return '.'; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 70 "./Cool.l"
+#line 70 "Cool.l"
 { return '@'; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 71 "./Cool.l"
+#line 71 "Cool.l"
 { return '~'; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 72 "./Cool.l"
+#line 72 "Cool.l"
 { return AND; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 73 "./Cool.l"
+#line 73 "Cool.l"
 { return OR; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 75 "./Cool.l"
+#line 75 "Cool.l"
 { printf("Comment: %s\n", yytext); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 77 "./Cool.l"
+#line 77 "Cool.l"
 { BEGIN(STRING); string_buf[0] = '\0'; string_pos = 0; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 78 "./Cool.l"
+#line 78 "Cool.l"
 { int len = yyleng; if (string_pos + len < sizeof(string_buf)-1) { strncpy(string_buf + string_pos, yytext, len); string_pos += len; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 79 "./Cool.l"
+#line 79 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\n'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 80 "./Cool.l"
+#line 80 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\t'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 81 "./Cool.l"
+#line 81 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\b'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 82 "./Cool.l"
+#line 82 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\f'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 83 "./Cool.l"
+#line 83 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\r'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 84 "./Cool.l"
+#line 84 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\\'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 85 "./Cool.l"
+#line 85 "Cool.l"
 { if (string_pos + 1 < sizeof(string_buf)-1) { string_buf[string_pos++] = '\"'; string_buf[string_pos] = '\0'; } }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 86 "./Cool.l"
+#line 86 "Cool.l"
 { printf("ERROR unterminated_string line %d\n", line); BEGIN(INITIAL); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 87 "./Cool.l"
+#line 87 "Cool.l"
 { line++; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 88 "./Cool.l"
+#line 88 "Cool.l"
 { if (1024 < strlen(string_buf)) {printf("ERROR string_too_long line %d\n", line);} else { BEGIN(INITIAL); yylval.str=(char *)malloc(strlen(string_buf)+1); strcpy(yylval.str, string_buf); return STR_CONST;} }
 	YY_BREAK
 case YY_STATE_EOF(STRING):
-#line 89 "./Cool.l"
+#line 89 "Cool.l"
 { 
                         printf("ERROR unterminated_string: %s line %d\n", string_buf, line);
                         BEGIN(INITIAL);
@@ -1038,17 +1038,17 @@ case YY_STATE_EOF(STRING):
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 95 "./Cool.l"
+#line 95 "Cool.l"
 { comment_depth = 1; BEGIN(COMMENT); comment_pos = 0; strncpy(comment_buf, yytext, yyleng); comment_pos += yyleng; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 96 "./Cool.l"
+#line 96 "Cool.l"
 { comment_depth++; strncpy(comment_buf+comment_pos, yytext, yyleng); comment_pos += yyleng; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 97 "./Cool.l"
+#line 97 "Cool.l"
 {
                         comment_depth--;
                         strncpy(comment_buf+comment_pos, yytext, yyleng);
@@ -1062,16 +1062,16 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 107 "./Cool.l"
+#line 107 "Cool.l"
 { line++; comment_buf[comment_pos++] = '\n'; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 108 "./Cool.l"
+#line 108 "Cool.l"
 { int len = yyleng; strncpy(comment_buf + comment_pos, yytext, len); comment_pos += len;}
 	YY_BREAK
 case YY_STATE_EOF(COMMENT):
-#line 109 "./Cool.l"
+#line 109 "Cool.l"
 { 
                         comment_buf[comment_pos] = '\0';
                         printf("ERROR unterminated_comment: %s line %d\n", comment_buf, line);
@@ -1080,12 +1080,12 @@ case YY_STATE_EOF(COMMENT):
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 115 "./Cool.l"
+#line 115 "Cool.l"
 { printf("ERROR unexpected_symbol %s line %d\n", yytext, line); }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 117 "./Cool.l"
+#line 117 "Cool.l"
 ECHO;
 	YY_BREAK
 #line 1092 "lex.yy.c"
@@ -1974,5 +1974,5 @@ int main()
 	return 0;
 	}
 #endif
-#line 117 "./Cool.l"
+#line 117 "Cool.l"
 

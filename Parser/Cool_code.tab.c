@@ -61,14 +61,14 @@
 #define YYPULL 1
 
 /* Using locations.  */
-#define YYLSP_NEEDED 0
+#define YYLSP_NEEDED 1
 
 
 
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 1 "./Cool_code.y"
+#line 1 "Cool_code.y"
 
 #include "../Nodes/ast.h"
 #include "../Nodes/ast.c"
@@ -85,7 +85,7 @@ void yyerror(const char *s);
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 1
+# define YYDEBUG 0
 #endif
 
 /* Enabling verbose error messages.  */
@@ -147,7 +147,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 31 "./Cool_code.y"
+#line 31 "Cool_code.y"
 
     char* str;
     int intval;
@@ -177,12 +177,25 @@ typedef union YYSTYPE
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+} YYLTYPE;
+# define yyltype YYLTYPE /* obsolescent; will be withdrawn */
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
 
 /* Copy the second part of user declarations.  */
 
 
 /* Line 264 of yacc.c  */
-#line 186 "Cool_code.tab.c"
+#line 199 "Cool_code.tab.c"
 
 #ifdef short
 # undef short
@@ -340,13 +353,15 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 
 #if (! defined yyoverflow \
      && (! defined __cplusplus \
-	 || (defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
+	 || (defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL \
+	     && defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
 
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
   yytype_int16 yyss_alloc;
   YYSTYPE yyvs_alloc;
+  YYLTYPE yyls_alloc;
 };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
@@ -355,8 +370,8 @@ union yyalloc
 /* The size of an array large to enough to hold all stacks, each with
    N elements.  */
 # define YYSTACK_BYTES(N) \
-     ((N) * (sizeof (yytype_int16) + sizeof (YYSTYPE)) \
-      + YYSTACK_GAP_MAXIMUM)
+     ((N) * (sizeof (yytype_int16) + sizeof (YYSTYPE) + sizeof (YYLTYPE)) \
+      + 2 * YYSTACK_GAP_MAXIMUM)
 
 /* Copy COUNT objects from FROM to TO.  The source and destination do
    not overlap.  */
@@ -849,7 +864,7 @@ do {									  \
     {									  \
       YYFPRINTF (stderr, "%s ", Title);					  \
       yy_symbol_print (stderr,						  \
-		  Type, Value); \
+		  Type, Value, Location); \
       YYFPRINTF (stderr, "\n");						  \
     }									  \
 } while (YYID (0))
@@ -863,17 +878,19 @@ do {									  \
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
 #else
 static void
-yy_symbol_value_print (yyoutput, yytype, yyvaluep)
+yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
+    YYLTYPE const * const yylocationp;
 #endif
 {
   if (!yyvaluep)
     return;
+  YYUSE (yylocationp);
 # ifdef YYPRINT
   if (yytype < YYNTOKENS)
     YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
@@ -895,13 +912,14 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
 #else
 static void
-yy_symbol_print (yyoutput, yytype, yyvaluep)
+yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
+    YYLTYPE const * const yylocationp;
 #endif
 {
   if (yytype < YYNTOKENS)
@@ -909,7 +927,9 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
   else
     YYFPRINTF (yyoutput, "nterm %s (", yytname[yytype]);
 
-  yy_symbol_value_print (yyoutput, yytype, yyvaluep);
+  YY_LOCATION_PRINT (yyoutput, *yylocationp);
+  YYFPRINTF (yyoutput, ": ");
+  yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp);
   YYFPRINTF (yyoutput, ")");
 }
 
@@ -952,11 +972,12 @@ do {								\
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_reduce_print (YYSTYPE *yyvsp, int yyrule)
+yy_reduce_print (YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule)
 #else
 static void
-yy_reduce_print (yyvsp, yyrule)
+yy_reduce_print (yyvsp, yylsp, yyrule)
     YYSTYPE *yyvsp;
+    YYLTYPE *yylsp;
     int yyrule;
 #endif
 {
@@ -971,7 +992,7 @@ yy_reduce_print (yyvsp, yyrule)
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
-		       		       );
+		       , &(yylsp[(yyi + 1) - (yynrhs)])		       );
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -979,7 +1000,7 @@ yy_reduce_print (yyvsp, yyrule)
 # define YY_REDUCE_PRINT(Rule)		\
 do {					\
   if (yydebug)				\
-    yy_reduce_print (yyvsp, Rule); \
+    yy_reduce_print (yyvsp, yylsp, Rule); \
 } while (YYID (0))
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -1230,16 +1251,18 @@ yysyntax_error (char *yyresult, int yystate, int yychar)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp)
 #else
 static void
-yydestruct (yymsg, yytype, yyvaluep)
+yydestruct (yymsg, yytype, yyvaluep, yylocationp)
     const char *yymsg;
     int yytype;
     YYSTYPE *yyvaluep;
+    YYLTYPE *yylocationp;
 #endif
 {
   YYUSE (yyvaluep);
+  YYUSE (yylocationp);
 
   if (!yymsg)
     yymsg = "Deleting";
@@ -1274,6 +1297,9 @@ int yychar;
 
 /* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
+
+/* Location data for the lookahead symbol.  */
+YYLTYPE yylloc;
 
 /* Number of syntax errors so far.  */
 int yynerrs;
@@ -1315,6 +1341,7 @@ yyparse ()
     /* The stacks and their tools:
        `yyss': related to states.
        `yyvs': related to semantic values.
+       `yyls': related to locations.
 
        Refer to the stacks thru separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
@@ -1329,6 +1356,14 @@ yyparse ()
     YYSTYPE *yyvs;
     YYSTYPE *yyvsp;
 
+    /* The location stack.  */
+    YYLTYPE yylsa[YYINITDEPTH];
+    YYLTYPE *yyls;
+    YYLTYPE *yylsp;
+
+    /* The locations where the error started and ended.  */
+    YYLTYPE yyerror_range[2];
+
     YYSIZE_T yystacksize;
 
   int yyn;
@@ -1338,6 +1373,7 @@ yyparse ()
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
+  YYLTYPE yyloc;
 
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
@@ -1346,7 +1382,7 @@ yyparse ()
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
-#define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
+#define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N), yylsp -= (N))
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
@@ -1355,6 +1391,7 @@ yyparse ()
   yytoken = 0;
   yyss = yyssa;
   yyvs = yyvsa;
+  yyls = yylsa;
   yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
@@ -1370,6 +1407,13 @@ yyparse ()
      The wasted elements are never initialized.  */
   yyssp = yyss;
   yyvsp = yyvs;
+  yylsp = yyls;
+
+#if YYLTYPE_IS_TRIVIAL
+  /* Initialize the default location before parsing starts.  */
+  yylloc.first_line   = yylloc.last_line   = 1;
+  yylloc.first_column = yylloc.last_column = 1;
+#endif
 
   goto yysetstate;
 
@@ -1396,6 +1440,7 @@ yyparse ()
 	   memory.  */
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
+	YYLTYPE *yyls1 = yyls;
 
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
@@ -1404,8 +1449,10 @@ yyparse ()
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
+		    &yyls1, yysize * sizeof (*yylsp),
 		    &yystacksize);
 
+	yyls = yyls1;
 	yyss = yyss1;
 	yyvs = yyvs1;
       }
@@ -1428,6 +1475,7 @@ yyparse ()
 	  goto yyexhaustedlab;
 	YYSTACK_RELOCATE (yyss_alloc, yyss);
 	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
+	YYSTACK_RELOCATE (yyls_alloc, yyls);
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -1437,6 +1485,7 @@ yyparse ()
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
+      yylsp = yyls + yysize - 1;
 
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
@@ -1512,7 +1561,7 @@ yybackup:
 
   yystate = yyn;
   *++yyvsp = yylval;
-
+  *++yylsp = yylloc;
   goto yynewstate;
 
 
@@ -1543,420 +1592,421 @@ yyreduce:
      GCC warning that YYVAL may be used uninitialized.  */
   yyval = yyvsp[1-yylen];
 
-
+  /* Default location.  */
+  YYLLOC_DEFAULT (yyloc, (yylsp - yylen), yylen);
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 71 "./Cool_code.y"
+#line 71 "Cool_code.y"
     {program = make_program((yyvsp[(1) - (1)].class_list)); (yyval.program) = program;;}
     break;
 
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 74 "./Cool_code.y"
+#line 74 "Cool_code.y"
     { (yyval.class_list) = append_class_list((yyvsp[(1) - (2)].class_list), (yyvsp[(2) - (2)].class_)); ;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 75 "./Cool_code.y"
+#line 75 "Cool_code.y"
     { (yyval.class_list) = make_class_list((yyvsp[(1) - (1)].class_)); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 78 "./Cool_code.y"
+#line 78 "Cool_code.y"
     { (yyval.class_) = make_class((yyvsp[(2) - (6)].str), NULL, (yyvsp[(4) - (6)].feature_list)); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 79 "./Cool_code.y"
+#line 79 "Cool_code.y"
     { (yyval.class_) = make_class((yyvsp[(2) - (8)].str), (yyvsp[(4) - (8)].str), (yyvsp[(6) - (8)].feature_list)); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 82 "./Cool_code.y"
+#line 82 "Cool_code.y"
     { (yyval.feature_list) = NULL; ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 83 "./Cool_code.y"
+#line 83 "Cool_code.y"
     { (yyval.feature_list) = (yyvsp[(1) - (1)].feature_list); ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 86 "./Cool_code.y"
+#line 86 "Cool_code.y"
     { (yyval.feature_list) = append_feature_list((yyvsp[(1) - (2)].feature_list), (yyvsp[(2) - (2)].feature)); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 87 "./Cool_code.y"
+#line 87 "Cool_code.y"
     { (yyval.feature_list) = make_feature_list((yyvsp[(1) - (1)].feature)); ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 90 "./Cool_code.y"
+#line 90 "Cool_code.y"
     { (yyval.feature) = make_method((yyvsp[(1) - (10)].str), (yyvsp[(3) - (10)].formal_list), (yyvsp[(6) - (10)].str), make_block((yyvsp[(8) - (10)].block_expr_list))); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 91 "./Cool_code.y"
+#line 91 "Cool_code.y"
     { (yyval.feature) = make_attr((yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].str), NULL); ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 92 "./Cool_code.y"
+#line 92 "Cool_code.y"
     { (yyval.feature) = make_attr((yyvsp[(1) - (6)].str), (yyvsp[(3) - (6)].str), (yyvsp[(5) - (6)].expr)); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 95 "./Cool_code.y"
+#line 95 "Cool_code.y"
     { (yyval.formal_list) = NULL; ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 96 "./Cool_code.y"
+#line 96 "Cool_code.y"
     { (yyval.formal_list) = (yyvsp[(1) - (1)].formal_list); ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 99 "./Cool_code.y"
+#line 99 "Cool_code.y"
     { (yyval.formal_list) = append_formal_list((yyvsp[(1) - (3)].formal_list), (yyvsp[(3) - (3)].formal)); ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 100 "./Cool_code.y"
+#line 100 "Cool_code.y"
     { (yyval.formal_list) = make_formal_list((yyvsp[(1) - (1)].formal)); ;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 103 "./Cool_code.y"
+#line 103 "Cool_code.y"
     { (yyval.formal) = make_formal((yyvsp[(1) - (3)].str), (yyvsp[(3) - (3)].str)); ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 107 "./Cool_code.y"
+#line 107 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_OR, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 108 "./Cool_code.y"
+#line 108 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_AND, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 109 "./Cool_code.y"
+#line 109 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_PLUS, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 110 "./Cool_code.y"
+#line 110 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_MINUS, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 111 "./Cool_code.y"
+#line 111 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_MUL, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 112 "./Cool_code.y"
+#line 112 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_DIV, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 113 "./Cool_code.y"
+#line 113 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_LT, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 114 "./Cool_code.y"
+#line 114 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_LE, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 115 "./Cool_code.y"
+#line 115 "Cool_code.y"
     { (yyval.expr) = make_binop(OP_EQ, (yyvsp[(1) - (3)].expr), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 116 "./Cool_code.y"
+#line 116 "Cool_code.y"
     { (yyval.expr) = (yyvsp[(2) - (3)].expr); ;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 117 "./Cool_code.y"
+#line 117 "Cool_code.y"
     { (yyval.expr) = make_assign((yyvsp[(1) - (3)].str), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 118 "./Cool_code.y"
+#line 118 "Cool_code.y"
     { (yyval.expr) = make_object((yyvsp[(1) - (1)].str)); ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 119 "./Cool_code.y"
+#line 119 "Cool_code.y"
     { (yyval.expr) = make_int((yyvsp[(1) - (1)].intval)); ;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 120 "./Cool_code.y"
+#line 120 "Cool_code.y"
     { (yyval.expr) = make_string((yyvsp[(1) - (1)].str)); ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 121 "./Cool_code.y"
+#line 121 "Cool_code.y"
     { (yyval.expr) = make_bool(true); ;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 122 "./Cool_code.y"
+#line 122 "Cool_code.y"
     { (yyval.expr) = make_bool(false); ;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 123 "./Cool_code.y"
+#line 123 "Cool_code.y"
     { (yyval.expr) = make_unop(OP_NEG, (yyvsp[(2) - (2)].expr)); ;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 124 "./Cool_code.y"
+#line 124 "Cool_code.y"
     { (yyval.expr) = make_unop(OP_ISVOID, (yyvsp[(2) - (2)].expr)); ;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 125 "./Cool_code.y"
+#line 125 "Cool_code.y"
     { (yyval.expr) = make_unop(OP_NOT, (yyvsp[(2) - (2)].expr)); ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 126 "./Cool_code.y"
+#line 126 "Cool_code.y"
     { (yyval.expr) = make_dispatch((yyvsp[(1) - (6)].expr), (yyvsp[(3) - (6)].str), (yyvsp[(5) - (6)].expr_list)); ;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 127 "./Cool_code.y"
+#line 127 "Cool_code.y"
     { (yyval.expr) = make_static_dispatch((yyvsp[(1) - (8)].expr), (yyvsp[(3) - (8)].str), (yyvsp[(5) - (8)].str), (yyvsp[(7) - (8)].expr_list)); ;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 128 "./Cool_code.y"
+#line 128 "Cool_code.y"
     { (yyval.expr) = make_dispatch(make_object((yyvsp[(1) - (4)].str)), (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].expr_list)); ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 129 "./Cool_code.y"
+#line 129 "Cool_code.y"
     { (yyval.expr) = make_if((yyvsp[(2) - (7)].expr), (yyvsp[(4) - (7)].expr), (yyvsp[(6) - (7)].expr)); ;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 130 "./Cool_code.y"
+#line 130 "Cool_code.y"
     { (yyval.expr) = make_let((yyvsp[(2) - (4)].let_list), (yyvsp[(4) - (4)].expr)); ;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 131 "./Cool_code.y"
+#line 131 "Cool_code.y"
     { (yyval.expr) = make_block((yyvsp[(2) - (3)].block_expr_list)); ;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 132 "./Cool_code.y"
+#line 132 "Cool_code.y"
     { (yyval.expr) = make_case((yyvsp[(2) - (5)].expr), (yyvsp[(4) - (5)].case_list)); ;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 133 "./Cool_code.y"
+#line 133 "Cool_code.y"
     { (yyval.expr) = make_while((yyvsp[(2) - (5)].expr), (yyvsp[(4) - (5)].expr)); ;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 134 "./Cool_code.y"
+#line 134 "Cool_code.y"
     { (yyval.expr) = make_new((yyvsp[(2) - (2)].str)); ;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 137 "./Cool_code.y"
+#line 137 "Cool_code.y"
     { (yyval.let_list) = append_let_list((yyvsp[(1) - (5)].let_list), make_let_list(make_let_binding((yyvsp[(3) - (5)].str), (yyvsp[(5) - (5)].str), NULL))); ;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 138 "./Cool_code.y"
+#line 138 "Cool_code.y"
     { (yyval.let_list) = append_let_list((yyvsp[(1) - (7)].let_list), make_let_list(make_let_binding((yyvsp[(3) - (7)].str), (yyvsp[(5) - (7)].str), (yyvsp[(7) - (7)].expr)))); ;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 139 "./Cool_code.y"
+#line 139 "Cool_code.y"
     { (yyval.let_list) = make_let_list(make_let_binding((yyvsp[(1) - (3)].str), (yyvsp[(3) - (3)].str), NULL)); ;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 140 "./Cool_code.y"
+#line 140 "Cool_code.y"
     { (yyval.let_list) = make_let_list(make_let_binding((yyvsp[(1) - (5)].str), (yyvsp[(3) - (5)].str), (yyvsp[(5) - (5)].expr))); ;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 143 "./Cool_code.y"
+#line 143 "Cool_code.y"
     { (yyval.expr_list) = NULL; ;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 144 "./Cool_code.y"
+#line 144 "Cool_code.y"
     { (yyval.expr_list) = (yyvsp[(1) - (1)].expr_list); ;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 147 "./Cool_code.y"
+#line 147 "Cool_code.y"
     { (yyval.expr_list) = append_expr_list((yyvsp[(1) - (3)].expr_list), (yyvsp[(3) - (3)].expr)); ;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 148 "./Cool_code.y"
+#line 148 "Cool_code.y"
     { (yyval.expr_list) = make_expr_list((yyvsp[(1) - (1)].expr)); ;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 151 "./Cool_code.y"
+#line 151 "Cool_code.y"
     { (yyval.block_expr_list) = append_expr_list((yyvsp[(1) - (3)].block_expr_list), (yyvsp[(2) - (3)].expr)); ;}
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 152 "./Cool_code.y"
+#line 152 "Cool_code.y"
     { (yyval.block_expr_list) = make_expr_list((yyvsp[(1) - (2)].expr)); ;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 155 "./Cool_code.y"
+#line 155 "Cool_code.y"
     { (yyval.case_list) = append_case_list((yyvsp[(1) - (2)].case_list), (yyvsp[(2) - (2)].case_item)); ;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 156 "./Cool_code.y"
+#line 156 "Cool_code.y"
     { (yyval.case_list) = make_case_list((yyvsp[(1) - (1)].case_item)); ;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 159 "./Cool_code.y"
+#line 159 "Cool_code.y"
     { (yyval.case_item) = make_case_item((yyvsp[(1) - (6)].str), (yyvsp[(3) - (6)].str), (yyvsp[(5) - (6)].expr)); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1960 "Cool_code.tab.c"
+#line 2010 "Cool_code.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1966,6 +2016,7 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
+  *++yylsp = yyloc;
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -2027,7 +2078,7 @@ yyerrlab:
 #endif
     }
 
-
+  yyerror_range[0] = yylloc;
 
   if (yyerrstatus == 3)
     {
@@ -2043,7 +2094,7 @@ yyerrlab:
       else
 	{
 	  yydestruct ("Error: discarding",
-		      yytoken, &yylval);
+		      yytoken, &yylval, &yylloc);
 	  yychar = YYEMPTY;
 	}
     }
@@ -2064,6 +2115,7 @@ yyerrorlab:
   if (/*CONSTCOND*/ 0)
      goto yyerrorlab;
 
+  yyerror_range[0] = yylsp[1-yylen];
   /* Do not reclaim the symbols of the rule which action triggered
      this YYERROR.  */
   YYPOPSTACK (yylen);
@@ -2097,9 +2149,9 @@ yyerrlab1:
       if (yyssp == yyss)
 	YYABORT;
 
-
+      yyerror_range[0] = *yylsp;
       yydestruct ("Error: popping",
-		  yystos[yystate], yyvsp);
+		  yystos[yystate], yyvsp, yylsp);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -2107,6 +2159,11 @@ yyerrlab1:
 
   *++yyvsp = yylval;
 
+  yyerror_range[1] = yylloc;
+  /* Using YYLLOC is tempting, but would change the location of
+     the lookahead.  YYLOC is available though.  */
+  YYLLOC_DEFAULT (yyloc, (yyerror_range - 1), 2);
+  *++yylsp = yyloc;
 
   /* Shift the error token.  */
   YY_SYMBOL_PRINT ("Shifting", yystos[yyn], yyvsp, yylsp);
@@ -2142,7 +2199,7 @@ yyexhaustedlab:
 yyreturn:
   if (yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
-		 yytoken, &yylval);
+		 yytoken, &yylval, &yylloc);
   /* Do not reclaim the symbols of the rule which action triggered
      this YYABORT or YYACCEPT.  */
   YYPOPSTACK (yylen);
@@ -2150,7 +2207,7 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-		  yystos[*yyssp], yyvsp);
+		  yystos[*yyssp], yyvsp, yylsp);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -2168,7 +2225,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 162 "./Cool_code.y"
+#line 162 "Cool_code.y"
 
 
 void yyerror(const char *s) {

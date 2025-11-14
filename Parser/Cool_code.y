@@ -1,6 +1,6 @@
 %{
-#include "ast.h"
-#include "ast.c"
+#include "../Nodes/ast.h"
+#include "../Nodes/ast.c"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,13 +62,13 @@ void yyerror(const char *s);
 %type <case_item> case_item
 %type <block_expr_list> block_expr_list
 
-6
+
 
 %start program
 
 %%
 
-program: class_list {$$=make_program($1);}
+program: class_list {program = make_program($1); $$ = program;}
        ;
 
 class_list: class_list class { $$ = append_class_list($1, $2); }
