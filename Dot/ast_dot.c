@@ -1,212 +1,348 @@
 #include "ast_dot.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#pragma warning(disable: 4996)
 
-static int node_counter = 0;
+static FILE* OUT;
 
-static int print_node(FILE* out, const char* label) {
-    int id = node_counter++;
-    fprintf(out, "  node%d [label=\"%s\"];\n", id, label);
-    return id;
-}
+/* -------------------------------------------------------
+   ЭКРАНИРОВАНИЕ СТРОКИ ДЛЯ DOT
+------------------------------------------------------- */
 
-static void print_edge(FILE* out, int from, int to) {
-    fprintf(out, "  node%d -> node%d;\n", from, to);
-}
+static char* escape_str(const char* s) {
+    if (!s) return _strdup("");
 
-static int print_expr(FILE* out, ExprNode* expr);
+    size_t len = strlen(s);
+    char* r = malloc(len * 2 + 1);  /* максимум */
+    char* p = r;
 
-static int print_expr(FILE* out, ExprNode* expr) {
-    if (!expr) return -1;
-    int id = -1;
-
-    switch (expr->kind) {
-    case EXPR_INT_CONST: {
-        char buf[32];
-        snprintf(buf, sizeof(buf), "int %d", expr->int_const.value);
-        id = print_node(out, buf);
-        break;
+    for (size_t i = 0; i < len; i++) {
+        if (s[i] == '"' || s[i] == '\\')
+            *p++ = '\\';
+        *p++ = s[i];
     }
-    case EXPR_STR_CONST:
-        id = print_node(out, expr->str_const.value);
-        break;
-    case EXPR_BOOL_CONST:
-        id = print_node(out, expr->bool_const.value ? "true" : "false");
-        break;
-    case EXPR_OBJECT:
-        id = print_node(out, expr->object.name);
-        break;
+    *p = 0;
+    return r;
+}
+
+/* -------------------------------------------------------
+   ПЕЧАТЬ УЗЛА
+   label вида:   <text> (#id)
+------------------------------------------------------- */
+
+static void print_node(int id, const char* label) {
+    char* esc = escape_str(label);
+
+    fprintf(OUT, "  node%d [label=\"%s (#%d)\"];\n", id, esc, id);
+
+    free(esc);
+}
+
+/* -------------------------------------------------------
+   ПЕЧАТЬ ДУГИ
+------------------------------------------------------- */
+
+static void edge(int from, int to, const char* label) {
+    fprintf(OUT, "  node%d -> node%d [label=\"%s\"];\n", from, to, label);
+}
+
+/* -------------------------------------------------------
+   ПЕЧАТЬ ОПЕРАЦИИ
+------------------------------------------------------- */
+
+static const char* binop_name(BinOpKind op) {
+    switch (op) {
+    case OP_PLUS:  return "+";
+    case OP_MINUS: return "-";
+    case OP_MUL:   return "*";
+    case OP_DIV:   return "/";
+    case OP_LT:    return "<";
+    case OP_LE:    return "<=";
+    case OP_EQ:    return "=";
+    case OP_AND:   return "and";
+    case OP_OR:    return "or";
+    }
+    return "?";
+}
+
+static const char* unop_name(UnOpKind op) {
+    switch (op) {
+    case OP_NEG:    return "~";
+    case OP_ISVOID: return "isvoid";
+    case OP_NOT:    return "not";
+    }
+    return "?";
+}
+
+/* -------------------------------------------------------
+   ОБХОД ВЫРАЖЕНИЙ
+------------------------------------------------------- */
+
+static void print_expr(ExprNode* e);
+
+static void print_expr_list(ExprList* l, int from) {
+    int arg_index = 1;
+    while (l) {
+        print_expr(l->node);
+        edge(from, l->node->id, arg_index == 1 ? "arg1" :
+            arg_index == 2 ? "arg2" : "arg3");
+        arg_index++;
+        l = l->next;
+    }
+}
+
+static void print_case_list(CaseList* l, int from) {
+    int idx = 1;
+    while (l) {
+        CaseNode* c = l->node;
+
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%s : %s", c->name, c->type);
+        print_node(c->id, buf);
+
+        print_expr(c->expr);
+        edge(from, c->id, "case");
+        edge(c->id, c->expr->id, "arg1");
+
+        l = l->next;
+        idx++;
+    }
+}
+
+static void print_let_list(LetList* l, int from) {
+    int idx = 1;
+    while (l) {
+        LetBindingNode* b = l->binding;
+
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%s : %s", b->name, b->type);
+        print_node(b->id, buf);
+
+        if (b->init) {
+            print_expr(b->init);
+            edge(b->id, b->init->id, "arg1");
+        }
+
+        edge(from, b->id, "binding");
+
+        l = l->next;
+        idx++;
+    }
+}
+
+static void print_expr(ExprNode* e) {
+    if (!e) return;
+
+    switch (e->kind) {
+
     case EXPR_ASSIGN: {
-        id = print_node(out, "=");
-        int v = print_node(out, expr->assign.name);
-        int rhs = print_expr(out, expr->assign.expr);
-        print_edge(out, id, v);
-        if (rhs != -1) print_edge(out, id, rhs);
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%s", e->assign.name);
+        print_node(e->id, buf);
+
+        print_expr(e->assign.expr);
+        edge(e->id, e->assign.expr->id, "arg1");
         break;
     }
+
     case EXPR_BINOP: {
-        const char* ops[] = { "+", "-", "*", "/", "<", "<=", "=", "and", "or" };
-        const char* op = (expr->binop.op >= 0 && expr->binop.op < 9) ? ops[expr->binop.op] : "?";
-        id = print_node(out, op);
-        int l = print_expr(out, expr->binop.left);
-        int r = print_expr(out, expr->binop.right);
-        if (l != -1) print_edge(out, id, l);
-        if (r != -1) print_edge(out, id, r);
+        const char* op = binop_name(e->binop.op);
+        print_node(e->id, op);
+
+        print_expr(e->binop.left);
+        print_expr(e->binop.right);
+        edge(e->id, e->binop.left->id, "arg1");
+        edge(e->id, e->binop.right->id, "arg2");
         break;
     }
+
     case EXPR_UNOP: {
-        const char* ops[] = { "~", "not", "isvoid" };
-        const char* op = (expr->unop.op >= 0 && expr->unop.op < 3) ? ops[expr->unop.op] : "?";
-        id = print_node(out, op);
-        int sub = print_expr(out, expr->unop.expr);
-        if (sub != -1) print_edge(out, id, sub);
+        const char* op = unop_name(e->unop.op);
+        print_node(e->id, op);
+
+        print_expr(e->unop.expr);
+        edge(e->id, e->unop.expr->id, "arg1");
         break;
     }
+
+    case EXPR_OBJECT:
+        print_node(e->id, e->object.name);
+        break;
+
+    case EXPR_INT_CONST: {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%d", e->int_const.value);
+        print_node(e->id, buf);
+        break;
+    }
+
+    case EXPR_STR_CONST: {
+        char* esc = escape_str(e->str_const.value);
+        char buf[512];
+        snprintf(buf, sizeof(buf), "\"%s\"", esc);
+        print_node(e->id, buf);
+        free(esc);
+        break;
+    }
+
+    case EXPR_BOOL_CONST:
+        print_node(e->id, e->bool_const.value ? "true" : "false");
+        break;
+
+    case EXPR_DISPATCH: {
+        print_node(e->id, e->dispatch.method);
+
+        print_expr(e->dispatch.caller);
+        edge(e->id, e->dispatch.caller->id, "arg1");
+
+        print_expr_list(e->dispatch.args, e->id);
+        break;
+    }
+
+    case EXPR_STATIC_DISPATCH: {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%s@%s",
+            e->static_dispatch.method,
+            e->static_dispatch.type);
+        print_node(e->id, buf);
+
+        print_expr(e->static_dispatch.caller);
+        edge(e->id, e->static_dispatch.caller->id, "arg1");
+
+        print_expr_list(e->static_dispatch.args, e->id);
+        break;
+    }
+
     case EXPR_IF: {
-        id = print_node(out, "if");
-        int c = print_expr(out, expr->if_expr.cond);
-        int t = print_expr(out, expr->if_expr.then_branch);
-        int e = print_expr(out, expr->if_expr.else_branch);
-        if (c != -1) print_edge(out, id, c);
-        if (t != -1) print_edge(out, id, t);
-        if (e != -1) print_edge(out, id, e);
+        print_node(e->id, "if");
+
+        print_expr(e->if_expr.cond);
+        print_expr(e->if_expr.then_branch);
+        print_expr(e->if_expr.else_branch);
+
+        edge(e->id, e->if_expr.cond->id, "arg1");
+        edge(e->id, e->if_expr.then_branch->id, "arg2");
+        edge(e->id, e->if_expr.else_branch->id, "arg3");
         break;
     }
+
     case EXPR_WHILE: {
-        id = print_node(out, "while");
-        int c = print_expr(out, expr->while_expr.cond);
-        int b = print_expr(out, expr->while_expr.body);
-        if (c != -1) print_edge(out, id, c);
-        if (b != -1) print_edge(out, id, b);
+        print_node(e->id, "while");
+
+        print_expr(e->while_expr.cond);
+        print_expr(e->while_expr.body);
+
+        edge(e->id, e->while_expr.cond->id, "arg1");
+        edge(e->id, e->while_expr.body->id, "arg2");
         break;
     }
+
     case EXPR_BLOCK: {
-        id = print_node(out, "block");
-        for (ExprList* ex = expr->block.exprs; ex; ex = ex->next) {
-            int sub = print_expr(out, ex->node);
-            if (sub != -1) print_edge(out, id, sub);
+        print_node(e->id, "block");
+        ExprList* l = e->block.exprs;
+
+        int idx = 1;
+        while (l) {
+            print_expr(l->node);
+            edge(e->id, l->node->id, "arg1");
+            l = l->next;
+            idx++;
         }
         break;
     }
+
     case EXPR_LET: {
-        id = print_node(out, "let");
-        for (LetList* l = expr->let_expr.bindings; l; l = l->next) {
-            int bind_id = print_node(out, l->binding->name);
-            print_edge(out, id, bind_id);
-            if (l->binding->init) {
-                int init_id = print_expr(out, l->binding->init);
-                if (init_id != -1) print_edge(out, bind_id, init_id);
+        print_node(e->id, "let");
+
+        print_let_list(e->let_expr.bindings, e->id);
+
+        print_expr(e->let_expr.body);
+        edge(e->id, e->let_expr.body->id, "body");
+        break;
+    }
+
+    case EXPR_CASE: {
+        print_node(e->id, "case");
+
+        print_expr(e->case_expr.expr);
+        edge(e->id, e->case_expr.expr->id, "arg1");
+
+        print_case_list(e->case_expr.cases, e->id);
+        break;
+    }
+
+    case EXPR_NEW:
+        print_node(e->id, e->new_expr.type);
+        break;
+    }
+}
+
+/* -------------------------------------------------------
+   CLASS / FEATURE / FORMALS / PROGRAM
+------------------------------------------------------- */
+
+static void print_feature_list(FeatureList* fl, int from) {
+    while (fl) {
+        FeatureNode* f = fl->node;
+
+        print_node(f->id, f->name);
+        edge(from, f->id, "feature");
+
+        if (f->kind == FEATURE_METHOD) {
+            FormalList* p = f->method.formals;
+            int idx = 1;
+            while (p) {
+                FormalNode* fm = p->node;
+
+                char buf[256];
+                snprintf(buf, sizeof(buf), "%s : %s", fm->name, fm->type);
+                print_node(fm->id, buf);
+                edge(f->id, fm->id, "arg1");
+
+                p = p->next;
+                idx++;
+            }
+
+            if (f->method.body) {
+                print_expr(f->method.body);
+                edge(f->id, f->method.body->id, "body");
             }
         }
-        int body = print_expr(out, expr->let_expr.body);
-        if (body != -1) print_edge(out, id, body);
-        break;
-    }
-    case EXPR_CASE: {
-        id = print_node(out, "case");
-        int e = print_expr(out, expr->case_expr.expr);
-        if (e != -1) print_edge(out, id, e);
-        for (CaseList* c = expr->case_expr.cases; c; c = c->next) {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "%s : %s", c->node->name, c->node->type);
-            int cname = print_node(out, buf);
-            print_edge(out, id, cname);
-            int cexpr = print_expr(out, c->node->expr);
-            if (cexpr != -1) print_edge(out, cname, cexpr);
+        else {
+            if (f->attr.init) {
+                print_expr(f->attr.init);
+                edge(f->id, f->attr.init->id, "arg1");
+            }
         }
-        break;
-    }
-    case EXPR_DISPATCH: {
-        char buf[128];
-        snprintf(buf, sizeof(buf), "dispatch %s", expr->dispatch.method);
-        id = print_node(out, buf);
-        if (expr->dispatch.caller) {
-            int caller = print_expr(out, expr->dispatch.caller);
-            if (caller != -1) print_edge(out, id, caller);
-        }
-        for (ExprList* a = expr->dispatch.args; a; a = a->next) {
-            int arg = print_expr(out, a->node);
-            if (arg != -1) print_edge(out, id, arg);
-        }
-        break;
-    }
-    case EXPR_STATIC_DISPATCH: {
-        char buf[128];
-        snprintf(buf, sizeof(buf), "dispatch %s@%s", expr->static_dispatch.method, expr->static_dispatch.type);
-        id = print_node(out, buf);
-        int caller = print_expr(out, expr->static_dispatch.caller);
-        if (caller != -1) print_edge(out, id, caller);
-        for (ExprList* a = expr->static_dispatch.args; a; a = a->next) {
-            int arg = print_expr(out, a->node);
-            if (arg != -1) print_edge(out, id, arg);
-        }
-        break;
-    }
-    case EXPR_NEW: {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "new %s", expr->new_expr.type);
-        id = print_node(out, buf);
-        break;
-    }
-    default:
-        id = print_node(out, "expr?");
-        break;
-    }
 
-    return id;
+        fl = fl->next;
+    }
 }
 
-void save_ast_dot(ProgramNode* program) {
-    FILE* out = fopen("Dot/cool_dot.dot", "w");
-    if (!out) {
-        fprintf(stderr, "Не удалось открыть cool_dot.dot для записи\n");
-        return;
+static void print_class_list(ClassList* cl, int from) {
+    while (cl) {
+        ClassNode* c = cl->node;
+
+        print_node(c->id, c->name);
+        edge(from, c->id, "class");
+
+        print_feature_list(c->features, c->id);
+
+        cl = cl->next;
     }
+}
 
-    fprintf(out, "digraph AST {\n");
-    node_counter = 0;
+void save_ast_dot(ProgramNode* p) {
+    OUT = fopen("Dot/cool_dot.dot", "w");
 
-    if (!program) {
-        fprintf(stderr, "Program == NULL\n");
-        fprintf(out, "  node0 [label=\"<empty program>\"];\n}\n");
-        fclose(out);
-        return;
-    }
+    fprintf(OUT, "digraph AST {\n");
+    fprintf(OUT, "  node [shape=box];\n");
 
-    int prog_id = print_node(out, "Program");
+    print_node(p->id, "program");
+    print_class_list(p->classes, p->id);
 
-    for (ClassList* c = program->classes; c; c = c->next) {
-        ClassNode* cls = c->node;
-        char buf[128];
-        snprintf(buf, sizeof(buf), "class %s", cls->name);
-        int class_id = print_node(out, buf);
-        print_edge(out, prog_id, class_id);
+    fprintf(OUT, "}\n");
 
-        if (cls->parent) {
-            char parent_buf[128];
-            snprintf(parent_buf, sizeof(parent_buf), "inherits %s", cls->parent);
-            int par_id = print_node(out, parent_buf);
-            print_edge(out, class_id, par_id);
-        }
-
-        for (FeatureList* f = cls->features; f; f = f->next) {
-            FeatureNode* feat = f->node;
-            char flabel[128];
-
-            if (feat->kind == FEATURE_METHOD)
-                snprintf(flabel, sizeof(flabel), "method %s : %s", feat->name, feat->method.return_type);
-            else
-                snprintf(flabel, sizeof(flabel), "attr %s : %s", feat->name, feat->attr.type);
-
-            int feat_id = print_node(out, flabel);
-            print_edge(out, class_id, feat_id);
-
-            if (feat->kind == FEATURE_METHOD && feat->method.body)
-                print_edge(out, feat_id, print_expr(out, feat->method.body));
-            else if (feat->kind == FEATURE_ATTR && feat->attr.init)
-                print_edge(out, feat_id, print_expr(out, feat->attr.init));
-        }
-    }
-
-    fprintf(out, "}\n");
-    fclose(out);
+    fclose(OUT);
 }
