@@ -214,7 +214,7 @@ void save_ast_dot(ProgramNode* p) {
     fprintf(OUT, "  node [shape=box];\n");
 
     print_node("program");
-    print_class_list(p->classes);
+    print_class_list(p->classes,"program");
 
     fprintf(OUT, "}\n");
 
