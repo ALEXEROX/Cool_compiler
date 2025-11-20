@@ -190,7 +190,7 @@ static void print_expr(ExprNode* e){
 }
 
 static void print_feature_list(FeatureList* fl, int from){
-    int attr_idx=0, method_idx=0;
+    int attr_idx=1, method_idx=1;
     while(fl){
         char attr[16];
         char method[16];
