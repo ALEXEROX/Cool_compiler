@@ -7,6 +7,11 @@ extern int AST_NODE_ID_COUNTER;
 
 #define NEW_ID() (++AST_NODE_ID_COUNTER)
 
+typedef struct ClassInfo ClassInfo;
+typedef struct MethodInfo MethodInfo;
+typedef struct AttrInfo AttrInfo;
+typedef struct VarBinding VarBinding;
+
 typedef struct ProgramNode ProgramNode;
 typedef struct ClassNode ClassNode;
 typedef struct FeatureNode FeatureNode;
@@ -53,6 +58,9 @@ typedef struct LetList {
 struct ProgramNode {
     int id;
     ClassList* classes;
+    /* семантика */
+    ClassInfo *root_classinfo; /* опционально: ссылка на корневую таблицу или NULL */
+    void *user_data; /* произвольное поле для расширений */
 };
 
 struct ClassNode {
@@ -60,6 +68,9 @@ struct ClassNode {
     char* name;
     char* parent; 
     FeatureList* features;
+    /* семантика */
+    ClassInfo *info;    /* заполнится после регистрации класса в ClassTable */
+    bool is_builtin;    /* признак зарезервированного класса (Object, IO и т.д.) */
 };
 
 typedef enum {
@@ -68,7 +79,7 @@ typedef enum {
 } FeatureKind;
 
 struct FeatureNode {
-    int id;
+    int id;          /* строка объявления */
     FeatureKind kind;
     char* name;
     union {
@@ -82,19 +93,33 @@ struct FeatureNode {
             ExprNode* init;
         } attr;
     };
+    /* семантика */
+    MethodInfo *method_info; /* для FEATURE_METHOD — MethodInfo из ClassTable */
+    AttrInfo *attr_info;     /* для FEATURE_ATTR — AttrInfo из ClassTable */
+
+    int cp_ref_index;        /* опционально: индекс Fieldref/Methodref в constant pool (если создан) */
+    void *user_data;         /* для расширений */
 };
 
 struct FormalNode {
     int id;
     char* name;
     char* type;
+    /* семантика */
+    int local_index;       /* индекс локальной переменной (JVM local index) при входе в метод */
+    VarBinding *var_binding; /* ссылка на VarBinding в ObjectEnv (если зарегистрирован) */
+    void *user_data;
 };
 
 struct LetBindingNode {
     int id;
     char* name;
     char* type;
-    ExprNode* init; 
+    ExprNode* init;
+    /* семантика */
+    int local_index;       /* индекс в локалях */
+    VarBinding *var_binding;
+    void *user_data;
 };
 
 struct CaseNode {
@@ -102,6 +127,10 @@ struct CaseNode {
     char* name;
     char* type;
     ExprNode* expr;
+    /* семантика */
+    int local_index;       /* индекс локальной переменной, выделенной для этой ветки */
+    VarBinding *var_binding;
+    void *user_data;
 };
 
 typedef enum {
@@ -151,6 +180,28 @@ struct ExprNode {
         struct { ExprNode* expr; CaseList* cases; } case_expr;
         struct { char* type; } new_expr;
     };
+    /* ---------------------------
+       Семантические поля (обязательные)
+       --------------------------- */
+
+    /* Результирующий статический тип выражения (например "Int", "MyClass", "SELF_TYPE" и т.д.)
+       Заполняется semantic-обходом: node->static_type = strdup("...") */
+    char *static_type;
+
+    /* Для идентификаторов: если имя ссылается на локальную переменную — ссылка на VarBinding */
+    VarBinding *var_binding;
+
+    /* Для dispatch: найденный метод и/или индекс в constant pool (если уже создан) */
+    MethodInfo *resolved_method;   /* MethodInfo, найденный при семантике (по статическому типу caller) */
+    int methodref_index;           /* индекс Methodref в ConstantTable (0 если не создан) */
+
+    /* Для обращения к полю: resolved AttrInfo + Fieldref index */
+    AttrInfo *resolved_attr;
+    int fieldref_index;
+
+    /* Опциональные данные для codegen/доп.аннотаций */
+    int tmp_local_index;           /* при генерации можно выделить временный локал */
+    void *user_data;
 };
 
 ProgramNode* make_program(ClassList* classes);
