@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
-/* Вспомогательные */
+/* ---- утилиты ---- */
 static char *strdup_safe(const char *s) {
     if (!s) return NULL;
     char *r = malloc(strlen(s) + 1);
@@ -11,13 +11,19 @@ static char *strdup_safe(const char *s) {
     return r;
 }
 
-/* Инициализация таблицы */
+/* ---- создание/инициализация/освобождение ---- */
+ClassTable *class_table_create(void) {
+    ClassTable *ct = malloc(sizeof(ClassTable));
+    class_table_init(ct);
+    return ct;
+}
+
 void class_table_init(ClassTable *ct) {
+    if (!ct) return;
     ct->head = NULL;
     ct->count = 0;
 }
 
-/* Очистка вспомогательных структур */
 static void free_attr_list(AttrInfo *a) {
     while (a) {
         AttrInfo *n = a->next;
@@ -44,15 +50,25 @@ static void free_method_list(MethodInfo *m) {
     }
 }
 
-/* Освобождение таблицы */
+static void free_children_list(ClassChild *ch) {
+    while (ch) {
+        ClassChild *n = ch->next;
+        free(ch);
+        ch = n;
+    }
+}
+
 void class_table_free(ClassTable *ct) {
+    if (!ct) return;
     ClassInfo *c = ct->head;
     while (c) {
         ClassInfo *n = c->next;
         free(c->name);
         if (c->parent) free(c->parent);
+        if (c->ast) { /* AST освобождается отдельно */ }
         free_attr_list(c->attrs);
         free_method_list(c->methods);
+        free_children_list(c->children);
         free(c);
         c = n;
     }
@@ -60,33 +76,36 @@ void class_table_free(ClassTable *ct) {
     ct->count = 0;
 }
 
-/* Добавление класса */
-ClassInfo *class_table_add(ClassTable *ct, const char *name, const char *parent, ClassNode *ast) {
-    if (!ct || !name) return NULL;
+/* ---- добавление класса из AST ---- */
+ClassInfo *class_table_add_class(ClassTable *ct, ClassNode *cnode) {
+    if (!ct || !cnode) return NULL;
+    if (!cnode->name) return NULL;
 
-    /* Если уже есть — вернуть существующий */
-    ClassInfo *exist = class_table_find(ct, name);
+    /* не добавляем дубликаты: если класс с таким именем уже есть — возвращаем существующий */
+    ClassInfo *exist = class_table_find(ct, cnode->name);
     if (exist) {
-        /* возможно обновить parent/ast если нужно */
-        if (!exist->parent && parent) exist->parent = strdup_safe(parent);
-        if (!exist->ast && ast) exist->ast = ast;
+        /* если ast ещё не привязан - привяжем */
+        if (!exist->ast) exist->ast = cnode;
         return exist;
     }
 
-    ClassInfo *c = malloc(sizeof(ClassInfo));
-    memset(c, 0, sizeof(ClassInfo));
-    c->id = ++ct->count;
-    c->name = strdup_safe(name);
-    c->parent = parent ? strdup_safe(parent) : NULL;
-    c->ast = ast;
-    c->attrs = NULL;
-    c->methods = NULL;
-    c->next = ct->head;
-    ct->head = c;
-    return c;
+    ClassInfo *ci = malloc(sizeof(ClassInfo));
+    memset(ci, 0, sizeof(ClassInfo));
+    ci->id = ++ct->count;
+    ci->name = strdup_safe(cnode->name);
+    ci->parent = cnode->parent ? strdup_safe(cnode->parent) : NULL;
+    ci->ast = cnode;
+    ci->parent_info = NULL;
+    ci->children = NULL;
+    ci->attrs = NULL;
+    ci->methods = NULL;
+    ci->visit_state = 0;
+    ci->next = ct->head;
+    ct->head = ci;
+    return ci;
 }
 
-/* Поиск класса по имени */
+/* ---- поиск класса по имени ---- */
 ClassInfo *class_table_find(ClassTable *ct, const char *name) {
     if (!ct || !name) return NULL;
     for (ClassInfo *c = ct->head; c; c = c->next) {
@@ -95,12 +114,31 @@ ClassInfo *class_table_find(ClassTable *ct, const char *name) {
     return NULL;
 }
 
-/* Создание MethodInfo из formals (копируем имена и типы) */
+/* ---- добавить attr/method из FeatureNode ---- */
+AttrInfo *class_add_attr_from_feature(ClassInfo *cls, FeatureNode *feat) {
+    if (!cls || !feat) return NULL;
+    if (feat->kind != FEATURE_ATTR) return NULL;
+
+    AttrInfo *a = malloc(sizeof(AttrInfo));
+    memset(a, 0, sizeof(AttrInfo));
+    a->name = strdup_safe(feat->name);
+    a->type = strdup_safe(feat->attr.type);
+    a->ast = feat;
+    a->next = cls->attrs;
+    /* id: порядковый номер в списке */
+    int id = 1;
+    for (AttrInfo *it = cls->attrs; it; it = it->next) id++;
+    a->id = id;
+    cls->attrs = a;
+    /* связать в AST */
+    feat->attr_info = a;
+    return a;
+}
+
 MethodInfo *methodinfo_create(const char *name, FormalList *formals, const char *return_type) {
     MethodInfo *m = malloc(sizeof(MethodInfo));
     memset(m, 0, sizeof(MethodInfo));
     m->name = strdup_safe(name ? name : "");
-    /* подсчёт формалов */
     int cnt = 0;
     for (FormalList *f = formals; f; f = f->next) cnt++;
     m->param_count = cnt;
@@ -122,50 +160,114 @@ MethodInfo *methodinfo_create(const char *name, FormalList *formals, const char 
     return m;
 }
 
-/* Добавление метода из FeatureNode */
 MethodInfo *class_add_method_from_feature(ClassInfo *cls, FeatureNode *feat) {
     if (!cls || !feat) return NULL;
     if (feat->kind != FEATURE_METHOD) return NULL;
 
-    /* Проверка дубликатов по имени и arity — простая */
-    for (MethodInfo *mm = cls->methods; mm; mm = mm->next) {
-        if (strcmp(mm->name, feat->name) == 0 && mm->param_count == 0 /* arity compare later */) {
-            /* Не проверяем сигнатуру полностью здесь — семантика должна это сделать.
-               Всё же, если нужно, можно более строго сравнивать mm->param_types.. */
-        }
-    }
-
     MethodInfo *m = methodinfo_create(feat->name, feat->method.formals, feat->method.return_type);
     m->ast = feat;
-    /* id: поставим текущее количество методов +1 (плюс можно пересчитать) */
+
+    /* id: порядковый номер в списке */
     int id = 1;
     for (MethodInfo *it = cls->methods; it; it = it->next) id++;
     m->id = id;
-    /* вставляем в начало списка */
+
     m->next = cls->methods;
     cls->methods = m;
+
+    feat->method_info = m;
     return m;
 }
 
-/* Добавление атрибута из FeatureNode */
-AttrInfo *class_add_attr_from_feature(ClassInfo *cls, FeatureNode *feat) {
-    if (!cls || !feat) return NULL;
-    if (feat->kind != FEATURE_ATTR) return NULL;
-
-    AttrInfo *a = malloc(sizeof(AttrInfo));
-    memset(a, 0, sizeof(AttrInfo));
-    a->name = strdup_safe(feat->name);
-    a->type = strdup_safe(feat->attr.type);
-    a->ast = feat;
-    int id = 1;
-    for (AttrInfo *it = cls->attrs; it; it = it->next) id++;
-    a->id = id;
-    a->next = cls->attrs;
-    cls->attrs = a;
-    return a;
+/* ---- вспомог: добавить pointer child в parent ---- */
+static void class_add_child(ClassInfo *parent, ClassInfo *child) {
+    if (!parent || !child) return;
+    ClassChild *ch = malloc(sizeof(ClassChild));
+    ch->child = child;
+    ch->next = parent->children;
+    parent->children = ch;
 }
 
-/* Поиск метода в классе (только в самом классе) */
+/* ---- проверка на запрещённые родители ---- */
+static bool is_forbidden_parent(const char *pname) {
+    if (!pname) return false;
+    /* В Cool обычно запрещено наследовать от Int, String, Bool, SELF_TYPE */
+    if (strcmp(pname, "Int") == 0) return true;
+    if (strcmp(pname, "String") == 0) return true;
+    if (strcmp(pname, "Bool") == 0) return true;
+    if (strcmp(pname, "SELF_TYPE") == 0) return true;
+    return false;
+}
+
+/* ---- построение связей parent_info и проверка ошибок ---- */
+static bool link_parents_and_check(ClassTable *ct) {
+    bool ok = true;
+    /* проверяем каждый класс: parent должен существовать (кроме Object) */
+    for (ClassInfo *c = ct->head; c; c = c->next) {
+        if (!c->parent) continue;
+        if (is_forbidden_parent(c->parent)) {
+            fprintf(stderr, "Semantic error: class %s cannot inherit from %s\n", c->name, c->parent);
+            ok = false;
+            continue;
+        }
+        ClassInfo *p = class_table_find(ct, c->parent);
+        if (!p) {
+            fprintf(stderr, "Semantic error: class %s inherits from undefined class %s\n", c->name, c->parent);
+            ok = false;
+            continue;
+        }
+        c->parent_info = p;
+        class_add_child(p, c);
+    }
+    return ok;
+}
+
+/* ---- цикл-детекция DFS ---- */
+static bool dfs_check_cycle(ClassInfo *c) {
+    if (!c) return false;
+    if (c->visit_state == 1) {
+        /* нашли цикл */
+        fprintf(stderr, "Semantic error: inheritance cycle detected at class %s\n", c->name);
+        return true;
+    }
+    if (c->visit_state == 2) return false;
+    c->visit_state = 1;
+    if (c->parent_info) {
+        if (dfs_check_cycle(c->parent_info)) return true;
+    }
+    c->visit_state = 2;
+    return false;
+}
+
+/* ---- основная функция построения наследования ---- */
+bool class_table_build_inheritance(ClassTable *ct) {
+    if (!ct) return false;
+
+    /* Проверка: наличие Object */
+    ClassInfo *object = class_table_find(ct, "Object");
+    if (!object) {
+        fprintf(stderr, "Semantic error: class Object is not defined\n");
+        return false;
+    }
+
+    /* Связываем parent_info и children; также проверяем существование родителя */
+    if (!link_parents_and_check(ct)) {
+        return false;
+    }
+
+    /* Детектируем циклы:
+       пометим все как unvisited (0) — done в class_table_add_class уже 0 */
+    for (ClassInfo *c = ct->head; c; c = c->next) c->visit_state = 0;
+
+    for (ClassInfo *c = ct->head; c; c = c->next) {
+        if (c->visit_state == 0) {
+            if (dfs_check_cycle(c)) return false;
+        }
+    }
+    return true;
+}
+
+/* ---- Поиск метода в локальном классе ---- */
 static MethodInfo *class_find_method_local(ClassInfo *cls, const char *method_name) {
     if (!cls || !method_name) return NULL;
     for (MethodInfo *m = cls->methods; m; m = m->next) {
@@ -174,104 +276,91 @@ static MethodInfo *class_find_method_local(ClassInfo *cls, const char *method_na
     return NULL;
 }
 
-/* Поиск метода в иерархии: ищем в class_name, если нет — идём по родителю и т.д. */
+/* ---- Поиск метода по иерархии ---- */
 MethodInfo *class_lookup_method(ClassTable *ct, const char *class_name, const char *method_name) {
     if (!ct || !class_name || !method_name) return NULL;
     ClassInfo *c = class_table_find(ct, class_name);
     while (c) {
         MethodInfo *m = class_find_method_local(c, method_name);
         if (m) return m;
-        if (!c->parent) break;
-        c = class_table_find(ct, c->parent);
+        c = c->parent_info;
     }
     return NULL;
 }
 
-/* is_subtype: с учётом равенства */
+/* ---- is_subtype ---- */
 bool is_subtype(ClassTable *ct, const char *child, const char *parent) {
     if (!ct || !child || !parent) return false;
     if (strcmp(child, parent) == 0) return true;
     ClassInfo *c = class_table_find(ct, child);
-    while (c && c->parent) {
-        if (strcmp(c->parent, parent) == 0) return true;
-        c = class_table_find(ct, c->parent);
+    while (c && c->parent_info) {
+        if (strcmp(c->parent_info->name, parent) == 0) return true;
+        c = c->parent_info;
     }
     return false;
 }
 
-/* lub: простая реализация: поднимаем по цепочке предков и ищем пересечение */
+/* ---- lub (наименьший общий предок) ---- */
 char *lub(ClassTable *ct, const char *A, const char *B) {
     if (!ct) return NULL;
     if (!A) return strdup_safe(B ? B : "Object");
     if (!B) return strdup_safe(A ? A : "Object");
     if (strcmp(A, B) == 0) return strdup_safe(A);
 
-    /* Соберём список предков A */
-    int max_depth = 1024;
-    char **ancA = malloc(sizeof(char*) * max_depth);
+    /* Соберём предков A в массив */
+    int max = 1024;
+    char **anc = malloc(sizeof(char*) * max);
     int na = 0;
-    char *cur = strdup_safe(A);
-    while (cur) {
-        ancA[na++] = strdup_safe(cur);
-        ClassInfo *ci = class_table_find(ct, cur);
-        if (!ci || !ci->parent) break;
-        char *p = ci->parent;
-        free(cur);
-        cur = strdup_safe(p);
-        if (na >= max_depth-1) break;
+    ClassInfo *c = class_table_find(ct, A);
+    while (c) {
+        anc[na++] = strdup_safe(c->name);
+        if (!c->parent_info) break;
+        c = c->parent_info;
+        if (na >= max-1) break;
     }
-    if (cur) free(cur);
 
-    /* Пройдём предков B и найдём первый, который в ancA */
+    /* Идём по предкам B и ищем совпадение */
+    c = class_table_find(ct, B);
     char *res = NULL;
-    char *curB = strdup_safe(B);
-    while (curB) {
+    while (c) {
         for (int i = 0; i < na; ++i) {
-            if (strcmp(curB, ancA[i]) == 0) {
-                res = strdup_safe(curB);
+            if (strcmp(c->name, anc[i]) == 0) {
+                res = strdup_safe(c->name);
                 break;
             }
         }
         if (res) break;
-        ClassInfo *ci = class_table_find(ct, curB);
-        if (!ci || !ci->parent) break;
-        char *p = ci->parent;
-        free(curB);
-        curB = strdup_safe(p);
+        if (!c->parent_info) break;
+        c = c->parent_info;
     }
-    if (curB) free(curB);
 
-    for (int i = 0; i < na; ++i) free(ancA[i]);
-    free(ancA);
+    for (int i = 0; i < na; ++i) free(anc[i]);
+    free(anc);
 
     if (!res) res = strdup_safe("Object");
     return res;
 }
 
-/* Получение JVM-дескриптора метода из MethodInfo */
+/* ---- descriptor из MethodInfo ---- */
 char *methodinfo_get_descriptor(MethodInfo *m) {
     if (!m) return strdup_safe("()V");
-    /* Сформировать временный FormalList-подобный интерфейс не нужно — используем make_method_descriptor,
-       но он ожидает FormalList. Для простоты создадим временный список Formals. */
-    FormalList *head = NULL;
-    FormalList *tail = NULL;
+    /* Создать временный FormalList для make_method_descriptor */
+    FormalList *head = NULL, *tail = NULL;
     for (int i = 0; i < m->param_count; ++i) {
         FormalNode *fn = malloc(sizeof(FormalNode));
         fn->id = -1;
         fn->name = strdup_safe(m->param_names[i]);
         fn->type = strdup_safe(m->param_types[i]);
-
         FormalList *fl = malloc(sizeof(FormalList));
         fl->node = fn;
         fl->next = NULL;
-
         if (!head) head = tail = fl;
         else { tail->next = fl; tail = fl; }
     }
 
     char *desc = make_method_descriptor(head, m->return_type);
 
-    /* cleanup временных формалов */
+    /* cleanup */
     FormalList *it = head;
     while (it) {
         FormalList *n = it->next;
@@ -281,11 +370,10 @@ char *methodinfo_get_descriptor(MethodInfo *m) {
         free(it);
         it = n;
     }
-
     return desc;
 }
 
-/* Печать таблицы для отладки */
+/* ---- Печать для отладки ---- */
 void class_table_print(ClassTable *ct, FILE *out) {
     fprintf(out, "ClassTable (count=%d)\n", ct->count);
     for (ClassInfo *c = ct->head; c; c = c->next) {
