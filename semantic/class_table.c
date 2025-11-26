@@ -288,6 +288,16 @@ MethodInfo *class_lookup_method(ClassTable *ct, const char *class_name, const ch
     return NULL;
 }
 
+MethodInfo *class_find_method(ClassInfo *cls, const char *method_name) {
+    if (!cls || !method_name) return NULL;
+
+    for (MethodInfo *m = cls->methods; m; m = m->next) {
+        if (strcmp(m->name, method_name) == 0)
+            return m;
+    }
+    return NULL;
+}
+
 /* ---- is_subtype ---- */
 bool is_subtype(ClassTable *ct, const char *child, const char *parent) {
     if (!ct || !child || !parent) return false;

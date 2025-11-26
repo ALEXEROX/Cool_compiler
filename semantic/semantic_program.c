@@ -1,6 +1,5 @@
 #include "semantic_program.h"
 #include "semantic_class.h"    /* мы подключим semantic_class() */
-#include "error_report.h"      /* твой модуль ошибок, если есть */
 
 #include <stdio.h>
 #include <stdlib.h>

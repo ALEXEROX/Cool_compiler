@@ -93,6 +93,8 @@ bool class_table_build_inheritance(ClassTable *ct);
 
 /* Поиск метода в классе и предках */
 MethodInfo *class_lookup_method(ClassTable *ct, const char *class_name, const char *method_name);
+/* Поиск метода только в данном классе (без подъёма к родителям) */
+MethodInfo *class_find_method(ClassInfo *cls, const char *method_name);
 
 /* Проверки наследования и вспомогательные функции */
 bool is_subtype(ClassTable *ct, const char *child, const char *parent);
