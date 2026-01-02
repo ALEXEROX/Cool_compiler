@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../semantic/class_table.h"
+#include "../semantic/object_env.h"
+
 static FILE* OUT;
 
 static char* escape_str(const char* s) {
@@ -33,6 +36,24 @@ static void print_node(int id, const char* label) {
 
     free(esc);
 }
+
+static void print_expr_node(ExprNode* e, const char* title) {
+    char buf[512];
+
+    if (e->static_type) {
+        snprintf(buf, sizeof(buf),
+                 "%s\\n: %s",
+                 title,
+                 e->static_type);
+    } else {
+        snprintf(buf, sizeof(buf),
+                 "%s\\n: <no type>",
+                 title);
+    }
+
+    print_node(e->id, buf);
+}
+
 
 static void edge(int from, int to, const char* label) {
     fprintf(OUT, "  node%d -> node%d [label=\"%s\"];\n", from, to, label);
@@ -105,14 +126,19 @@ static void print_expr(ExprNode* e){
     if(!e) return;
 
     switch(e->kind){
-        case EXPR_ASSIGN:
-            print_node(e->id,e->assign.name);
+        case EXPR_ASSIGN: {
+            char buf[256];
+            snprintf(buf,sizeof(buf),"<- %s\\n: %s",e->assign.name,e->static_type ? e->static_type : "?");
+            print_node(e->id, buf);
             print_expr(e->assign.expr);
             edge(e->id, e->assign.expr->id, "arg1");
             break;
+        }
         case EXPR_BINOP: {
             const char* op = binop_name(e->binop.op);
-            print_node(e->id,op);
+            char buf[128];
+            snprintf(buf,sizeof(buf),"%s\\n: %s",op,e->static_type ? e->static_type : "?");
+            print_node(e->id, buf);
             print_expr(e->binop.left);
             print_expr(e->binop.right);
             edge(e->id, e->binop.left->id, "left");
@@ -126,63 +152,110 @@ static void print_expr(ExprNode* e){
             edge(e->id, e->unop.expr->id,"arg1");
             break;
         }
-        case EXPR_OBJECT:
-            print_node(e->id,e->object.name);
+        case EXPR_OBJECT: {
+            char buf[256];
+            if (e->var_binding) {
+                snprintf(buf,sizeof(buf),
+                         "%s\\n: %s\\nidx=%d",
+                         e->object.name,
+                         e->var_binding->type,
+                         e->var_binding->index);
+            } else {
+                snprintf(buf,sizeof(buf),
+                         "%s\\n: %s",
+                         e->object.name,
+                         e->static_type ? e->static_type : "?");
+            }
+            print_node(e->id, buf);
             break;
+        }
+
         case EXPR_INT_CONST: {
-            char buf[64]; snprintf(buf,sizeof(buf),"%d",e->int_const.value);
+            char buf[64];
+            snprintf(buf,sizeof(buf),"(%d\n: %s)",e->int_const.value,e->static_type);
             print_node(e->id,buf);
             break;
         }
         case EXPR_STR_CONST: {
             char* esc = escape_str(e->str_const.value);
-            char buf[512]; snprintf(buf,sizeof(buf),"\"%s\"",esc);
+            char buf[512];
+            snprintf(buf,sizeof(buf),"(\"%s\"\n: %s)",esc,e->static_type);
             print_node(e->id,buf); free(esc);
             break;
         }
-        case EXPR_BOOL_CONST:
-            print_node(e->id,e->bool_const.value?"true":"false");
+        case EXPR_BOOL_CONST: {
+            char buf[64];
+            snprintf(buf,sizeof(buf),"(%d\n: %s)",e->bool_const.value,e->static_type);
+            print_node(e->id,buf);
             break;
-        case EXPR_DISPATCH:
-            print_node(e->id,e->dispatch.method);
+        }
+        case EXPR_DISPATCH: {
+            char buf[512];
+
+            if (e->resolved_method && e->dispatch_class) {
+                snprintf(buf,sizeof(buf),
+                         "%s()\\n: %s\\nowner=%s",
+                         e->dispatch.method,
+                         e->static_type,
+                         e->dispatch_class->name);
+            } else {
+                snprintf(buf,sizeof(buf),
+                         "%s()\\n: %s",
+                         e->dispatch.method,
+                         e->static_type ? e->static_type : "?");
+            }
+
+            print_node(e->id, buf);
             if(e->dispatch.caller){ print_expr(e->dispatch.caller); edge(e->id,e->dispatch.caller->id,"caller"); }
             print_expr_list(e->dispatch.args,e->id);
             break;
+        }
         case EXPR_STATIC_DISPATCH:{
-            char buf[256]; snprintf(buf,sizeof(buf),"%s@%s", e->static_dispatch.method,e->static_dispatch.type);
+            char buf[256];
+            snprintf(buf,sizeof(buf),"%s@%s", e->static_dispatch.method,e->static_dispatch.type);
             print_node(e->id,buf);
             if(e->static_dispatch.caller){ print_expr(e->static_dispatch.caller); edge(e->id,e->static_dispatch.caller->id,"caller"); }
             print_expr_list(e->static_dispatch.args,e->id);
             break;
         }
-        case EXPR_IF:
-            print_node(e->id,"if");
+        case EXPR_IF: {
+            char buf[128];
+            snprintf(buf,sizeof(buf),"if\\n: %s",e->static_type ? e->static_type : "?");
+            print_node(e->id, buf);
             print_expr(e->if_expr.cond); edge(e->id,e->if_expr.cond->id,"cond");
             print_expr(e->if_expr.then_branch); edge(e->id,e->if_expr.then_branch->id,"then");
             print_expr(e->if_expr.else_branch); edge(e->id,e->if_expr.else_branch->id,"else");
             break;
-        case EXPR_WHILE:
-            print_node(e->id,"while");
+        }
+        case EXPR_WHILE: {
+            char buf[128];
+            snprintf(buf,sizeof(buf),"while\\n: %s",e->static_type ? e->static_type : "?");
+            print_node(e->id, buf);
             print_expr(e->while_expr.cond); edge(e->id,e->while_expr.cond->id,"cond");
             print_expr(e->while_expr.body); edge(e->id,e->while_expr.body->id,"body");
             break;
+        }
         case EXPR_BLOCK:{
-            print_node(e->id,"block");
+            char buf[128];
+            snprintf(buf,sizeof(buf),"block\\n: %s",e->static_type ? e->static_type : "?");
+            print_node(e->id, buf);
             ExprList* l = e->block.exprs;
             int idx=1;
             while(l){ print_expr(l->node); char lbl[16]; snprintf(lbl,sizeof(lbl),"arg%d",idx++); edge(e->id,l->node->id,lbl); l=l->next; }
             break;
         }
-        case EXPR_LET:
+        case EXPR_LET: {
             print_node(e->id,"let");
             print_let_list(e->let_expr.bindings,e->id);
             print_expr(e->let_expr.body); edge(e->id,e->let_expr.body->id,"body");
             break;
-        case EXPR_CASE:
+        }
+        case EXPR_CASE: {
             print_node(e->id,"case");
             print_expr(e->case_expr.expr); edge(e->id,e->case_expr.expr->id,"expr");
             print_case_list(e->case_expr.cases,e->id);
             break;
+        }
         case EXPR_NEW:
             print_node(e->id,e->new_expr.type);
             break;
