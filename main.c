@@ -4,6 +4,7 @@
 #include "Lexer/lex.yy.c"
 #include "Parser/Cool_code.tab.c"
 #include "Dot/ast_dot.c"
+#include "Dump/ast_dump.h"
 
 extern ProgramNode *program;
 
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
     yyparse();
     save_ast_dot(program);
     system("Dot/dot.exe Dot/cool_dot.dot -Tsvg > dot.svg");
+
+    ast_dump_text("Dump/dump.txt", program);
 
     return 0;
 }
