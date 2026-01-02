@@ -163,6 +163,8 @@ typedef enum {
 struct ExprNode {
     int id;
     ExprKind kind;
+    ClassInfo * dispatch_class;
+
     union {
         struct { char* name; ExprNode* expr; } assign;
         struct { BinOpKind op; ExprNode* left; ExprNode* right; } binop;
