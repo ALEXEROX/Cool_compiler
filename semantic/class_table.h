@@ -5,12 +5,12 @@
 
 #include "../Nodes/ast.h"
 #include "constant_pool.h"
-#include "descriptor.h"
 
 /* Предварительные объявления (если понадобятся) */
 typedef struct ClassInfo ClassInfo;
 typedef struct MethodInfo MethodInfo;
 typedef struct AttrInfo AttrInfo;
+typedef struct ClassTable ClassTable;
 
 /* Информация об атрибуте (поле) класса */
 typedef struct AttrInfo {
@@ -60,7 +60,7 @@ typedef struct ClassInfo {
 } ClassInfo;
 
 /* Таблица классов */
-typedef struct {
+typedef struct ClassTable {
     ClassInfo *head;
     int count;
 } ClassTable;
