@@ -3,5 +3,6 @@
 //
 #pragma once
 #include "../Nodes/ast.h"
+#include "../Dot/ast_dot.h"
 
 bool ast_dump_text(const char *filename, ProgramNode *program);

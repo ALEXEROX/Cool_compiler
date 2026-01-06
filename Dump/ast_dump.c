@@ -78,30 +78,6 @@ static void dump_class(ClassNode *c) {
     line(")");
 }
 
-static const char *binop_name(BinOpKind op) {
-    switch (op) {
-        case OP_PLUS: return "+";
-        case OP_MINUS: return "-";
-        case OP_MUL: return "*";
-        case OP_DIV: return "/";
-        case OP_LT: return "<";
-        case OP_LE: return "<=";
-        case OP_EQ: return "=";
-        case OP_AND: return "and";
-        case OP_OR: return "or";
-    }
-    return "?";
-}
-
-static const char *unop_name(UnOpKind op) {
-    switch (op) {
-        case OP_NEG: return "~";
-        case OP_NOT: return "not";
-        case OP_ISVOID: return "isvoid";
-    }
-    return "?";
-}
-
 static void dump_expr(ExprNode *e) {
     if (!e) return;
 
