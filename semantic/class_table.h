@@ -5,7 +5,6 @@
 
 #include "../Nodes/ast.h"
 #include "constant_pool.h"
-#include "descriptor.h"
 
 /* Предварительные объявления (если понадобятся) */
 typedef struct ClassInfo ClassInfo;

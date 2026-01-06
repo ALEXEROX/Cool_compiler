@@ -4,7 +4,7 @@
 #include "Lexer/lex.yy.c"
 #include "Parser/Cool_code.tab.c"
 #include "Dot/ast_dot.c"
-#include "Dump/ast_dump.h"
+#include "Dump/ast_dump.c"
 
 extern ProgramNode *program;
 

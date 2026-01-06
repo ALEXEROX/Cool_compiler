@@ -1867,7 +1867,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 128 "Cool_code.y"
-    { (yyval.expr) = make_dispatch(make_object((yyvsp[(1) - (4)].str)), (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].expr_list)); ;}
+    { (yyval.expr) = make_dispatch(NULL, (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].expr_list)); ;}
     break;
 
   case 41:
