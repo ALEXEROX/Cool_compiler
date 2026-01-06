@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../Parser/Cool_code.tab.h"
+#include "../Parser/cool_code.tab.h"
 %}
 
 %x COMMENT STRING

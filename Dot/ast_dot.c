@@ -42,12 +42,12 @@ static void print_expr_node(ExprNode* e, const char* title) {
 
     if (e->static_type) {
         snprintf(buf, sizeof(buf),
-                 "%s\\n: %s",
+                 "%s\n: %s",
                  title,
                  e->static_type);
     } else {
         snprintf(buf, sizeof(buf),
-                 "%s\\n: <no type>",
+                 "%s\n: <no type>",
                  title);
     }
 
@@ -128,7 +128,7 @@ static void print_expr(ExprNode* e){
     switch(e->kind){
         case EXPR_ASSIGN: {
             char buf[256];
-            snprintf(buf,sizeof(buf),"<- %s\\n: %s",e->assign.name,e->static_type ? e->static_type : "?");
+            snprintf(buf,sizeof(buf),"%s\n: %s",e->assign.name,e->static_type ? e->static_type : "?");
             print_node(e->id, buf);
             print_expr(e->assign.expr);
             edge(e->id, e->assign.expr->id, "arg1");
@@ -137,7 +137,7 @@ static void print_expr(ExprNode* e){
         case EXPR_BINOP: {
             const char* op = binop_name(e->binop.op);
             char buf[128];
-            snprintf(buf,sizeof(buf),"%s\\n: %s",op,e->static_type ? e->static_type : "?");
+            snprintf(buf,sizeof(buf),"%s\n: %s",op,e->static_type ? e->static_type : "?");
             print_node(e->id, buf);
             print_expr(e->binop.left);
             print_expr(e->binop.right);
@@ -156,13 +156,13 @@ static void print_expr(ExprNode* e){
             char buf[256];
             if (e->var_binding) {
                 snprintf(buf,sizeof(buf),
-                         "%s\\n: %s\\nidx=%d",
+                         "%s\n: %s\nidx=%d",
                          e->object.name,
                          e->var_binding->type,
                          e->var_binding->index);
             } else {
                 snprintf(buf,sizeof(buf),
-                         "%s\\n: %s",
+                         "%s\n: %s",
                          e->object.name,
                          e->static_type ? e->static_type : "?");
             }
@@ -194,13 +194,13 @@ static void print_expr(ExprNode* e){
 
             if (e->resolved_method && e->dispatch_class) {
                 snprintf(buf,sizeof(buf),
-                         "%s()\\n: %s\\nowner=%s",
+                         "%s()\n: %s\nowner=%s",
                          e->dispatch.method,
                          e->static_type,
                          e->dispatch_class->name);
             } else {
                 snprintf(buf,sizeof(buf),
-                         "%s()\\n: %s",
+                         "%s()\n: %s",
                          e->dispatch.method,
                          e->static_type ? e->static_type : "?");
             }
@@ -220,7 +220,7 @@ static void print_expr(ExprNode* e){
         }
         case EXPR_IF: {
             char buf[128];
-            snprintf(buf,sizeof(buf),"if\\n: %s",e->static_type ? e->static_type : "?");
+            snprintf(buf,sizeof(buf),"if\n: %s",e->static_type ? e->static_type : "?");
             print_node(e->id, buf);
             print_expr(e->if_expr.cond); edge(e->id,e->if_expr.cond->id,"cond");
             print_expr(e->if_expr.then_branch); edge(e->id,e->if_expr.then_branch->id,"then");
@@ -229,7 +229,7 @@ static void print_expr(ExprNode* e){
         }
         case EXPR_WHILE: {
             char buf[128];
-            snprintf(buf,sizeof(buf),"while\\n: %s",e->static_type ? e->static_type : "?");
+            snprintf(buf,sizeof(buf),"while\n: %s",e->static_type ? e->static_type : "?");
             print_node(e->id, buf);
             print_expr(e->while_expr.cond); edge(e->id,e->while_expr.cond->id,"cond");
             print_expr(e->while_expr.body); edge(e->id,e->while_expr.body->id,"body");
@@ -237,7 +237,7 @@ static void print_expr(ExprNode* e){
         }
         case EXPR_BLOCK:{
             char buf[128];
-            snprintf(buf,sizeof(buf),"block\\n: %s",e->static_type ? e->static_type : "?");
+            snprintf(buf,sizeof(buf),"block\n: %s",e->static_type ? e->static_type : "?");
             print_node(e->id, buf);
             ExprList* l = e->block.exprs;
             int idx=1;

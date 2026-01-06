@@ -60,7 +60,7 @@ void yyerror(const char *s);
 %type <let_list> let_list
 %type <case_list> case_list
 %type <case_item> case_item
-%type <block_expr_list> block_expr_list
+%type <expr_list> block_expr_list
 
 
 
@@ -125,7 +125,7 @@ expr: expr OR expr { $$ = make_binop(OP_OR, $1, $3); }
     | NOT expr { $$ = make_unop(OP_NOT, $2); }
     | expr '.' OBJECTID '(' expr_list_e ')' %prec '.' { $$ = make_dispatch($1, $3, $5); }
 	| expr '@' TYPEID '.' OBJECTID '(' expr_list_e ')' %prec '.' { $$ = make_static_dispatch($1, $3, $5, $7); }
-	| OBJECTID '(' expr_list_e ')' { $$ = make_dispatch(NULL, $1, $3); }
+	| OBJECTID '(' expr_list_e ')' { $$ = make_dispatch(make_object($1), $1, $3); }
     | IF expr THEN expr ELSE expr FI { $$ = make_if($2, $4, $6); }
     | LET let_list IN expr %prec LETPREC { $$ = make_let($2, $4); }
     | '{' block_expr_list '}' { $$ = make_block($2); }
@@ -134,8 +134,8 @@ expr: expr OR expr { $$ = make_binop(OP_OR, $1, $3); }
     | NEW TYPEID { $$ = make_new($2); }
     ;
 
-let_list: let_list ',' OBJECTID ':' TYPEID { $$ = append_let_list($1, make_let_list(make_let_binding($3, $5, NULL))); }
-		| let_list ',' OBJECTID ':' TYPEID ASSIGN expr { $$ = append_let_list($1, make_let_list(make_let_binding($3, $5, $7))); }
+let_list: let_list ',' OBJECTID ':' TYPEID { $$ = append_let_list($1, make_let_binding($3, $5, NULL)); }
+		| let_list ',' OBJECTID ':' TYPEID ASSIGN expr { $$ = append_let_list($1, make_let_binding($3, $5, $7)); }
 		| OBJECTID ':' TYPEID { $$ = make_let_list(make_let_binding($1, $3, NULL)); }
 		| OBJECTID ':' TYPEID ASSIGN expr { $$ = make_let_list(make_let_binding($1, $3, $5)); }
 		;
