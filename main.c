@@ -4,6 +4,7 @@
 #include "Lexer/lex.yy.c"
 #include "Parser/cool_code.tab.c"
 #include "Dot/ast_dot.c"
+#include "semantic/semantic_program.h"
 
 extern ProgramNode *program;
 
@@ -23,9 +24,24 @@ int main(int argc, char *argv[])
     // }
 
     yyin = fopen(filename, "r");
+    if (!yyin) {
+        perror("Cannot open input file");
+        return 1;
+    }
+
     yyparse();
     save_ast_dot(program);
     system("C:\\\"Program Files\"\\Graphviz\\bin\\dot.exe Dot\\cool_dot.dot -Tsvg > dot.svg");
+    ClassTable *ct = semantic_program(program);
+
+    if (ct != NULL) {
+        printf("Semantic OK\n");
+    }
+
+    save_ast_dot(program);
+    system("C:\\\"Program Files\"\\Graphviz\\bin\\dot.exe Dot\\cool_dot.dot -Tsvg > semantic_dot.svg");
+
+
 
     return 0;
 }

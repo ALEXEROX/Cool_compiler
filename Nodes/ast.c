@@ -83,6 +83,7 @@ ExprNode* make_assign(const char* name, ExprNode* expr) {
     e->assign.name = dupstr(name);
     e->assign.expr = expr;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -94,6 +95,7 @@ ExprNode* make_binop(BinOpKind op, ExprNode* left, ExprNode* right) {
     e->binop.left = left;
     e->binop.right = right;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -104,6 +106,7 @@ ExprNode* make_unop(UnOpKind op, ExprNode* expr) {
     e->unop.op = op;
     e->unop.expr = expr;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -113,6 +116,7 @@ ExprNode* make_object(const char* name) {
     e->kind = EXPR_OBJECT;
     e->object.name = dupstr(name);
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -122,6 +126,7 @@ ExprNode* make_int(int value) {
     e->kind = EXPR_INT_CONST;
     e->int_const.value = value;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -131,6 +136,7 @@ ExprNode* make_string(const char* value) {
     e->kind = EXPR_STR_CONST;
     e->str_const.value = dupstr(value);
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -140,6 +146,7 @@ ExprNode* make_bool(bool value) {
     e->kind = EXPR_BOOL_CONST;
     e->bool_const.value = value;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -151,6 +158,8 @@ ExprNode* make_dispatch(ExprNode* caller, const char* method, ExprList* args) {
     e->dispatch.method = dupstr(method);
     e->dispatch.args = args;
     e->static_type = NULL;
+    e->var_binding = NULL;
+    e->dispatch_class = NULL;
     return e;
 }
 
@@ -163,6 +172,7 @@ ExprNode* make_static_dispatch(ExprNode* caller, const char* type, const char* m
     e->static_dispatch.method = dupstr(method);
     e->static_dispatch.args = args;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -174,6 +184,7 @@ ExprNode* make_if(ExprNode* cond, ExprNode* then_e, ExprNode* else_e) {
     e->if_expr.then_branch = then_e;
     e->if_expr.else_branch = else_e;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -184,6 +195,7 @@ ExprNode* make_while(ExprNode* cond, ExprNode* body) {
     e->while_expr.cond = cond;
     e->while_expr.body = body;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -193,6 +205,7 @@ ExprNode* make_block(ExprList* exprs) {
     e->kind = EXPR_BLOCK;
     e->block.exprs = exprs;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -203,6 +216,7 @@ ExprNode* make_let(LetList* bindings, ExprNode* body) {
     e->let_expr.bindings = bindings;
     e->let_expr.body = body;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -229,6 +243,7 @@ ExprNode* make_case(ExprNode* expr, CaseList* cases) {
     e->case_expr.expr = expr;
     e->case_expr.cases = cases;
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 
@@ -238,6 +253,7 @@ ExprNode* make_new(const char* type) {
     e->kind = EXPR_NEW;
     e->new_expr.type = dupstr(type);
     e->static_type = NULL;
+    e->var_binding = NULL;
     return e;
 }
 

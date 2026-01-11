@@ -114,7 +114,7 @@ int object_env_enter_method(ObjectEnv *env, const char *class_name, FormalList *
         }
         int idx;
         /* добавляем 'this' с type = class_name */
-        object_env_add(env, "this", class_name, &idx);
+        object_env_add(env, "self", "SELF_TYPE", &idx);
         (void)idx;
         added++;
     }

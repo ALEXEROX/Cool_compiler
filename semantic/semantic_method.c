@@ -127,21 +127,19 @@ bool semantic_check_method(ClassTable *ct, ClassInfo *cls, MethodInfo *m) {
     const char *actual = body->static_type;
     const char *expected = m->return_type;
 
-    if (strcmp(expected, "SELF_TYPE") == 0) {
-        /* result must conform to SELF_TYPE => actual must be subtype of cls->name */
-        if (!is_subtype(ct, actual, cls->name)) {
-            fprintf(stderr,
-                    "Semantic error: method %s.%s body type '%s' does not conform to SELF_TYPE\n",
-                    cls->name, m->name, actual);
-            ok = false;
-        }
-    } else {
-        if (!is_subtype(ct, actual, expected)) {
-            fprintf(stderr,
-                    "Semantic error: method %s.%s body type '%s' does not conform to declared return type '%s'\n",
-                    cls->name, m->name, actual, expected);
-            ok = false;
-        }
+    /* SELF_TYPE нормализация */
+    const char *actual_norm =
+        (strcmp(actual, "SELF_TYPE") == 0) ? cls->name : actual;
+
+    const char *expected_norm =
+        (strcmp(expected, "SELF_TYPE") == 0) ? cls->name : expected;
+
+    if (!is_subtype(ct, actual_norm, expected_norm, cls)) {
+        fprintf(stderr,
+            "Semantic error: method %s.%s body type '%s' does not conform to declared return type '%s'\n",
+            cls->name, m->name,
+            actual, expected);
+        ok = false;
     }
 
     return ok;

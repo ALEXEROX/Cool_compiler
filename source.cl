@@ -2,7 +2,7 @@ class Animal inherits IO {
     name : String;
     age : Int;
 
-    init(n : String, a : Int) : Animal {
+    init(n : String, a : Int) : SELF_TYPE {
         {
             name <- n;
             age <- a;
@@ -19,6 +19,8 @@ class Animal inherits IO {
             out_string("\n");
         };
     };
+	
+	speak() : String { "Hell! "; };
 };
 
 class Lion inherits Animal {
@@ -44,32 +46,6 @@ class Parrot inherits Animal {
     };
 
     speak() : String { phrase; };
-};
-
--- The Zoo class manages a list of animals
-class Zoo inherits IO {
-    animals : List <- new List;
-
-    add(a : Animal) : Zoo {
-        {
-            animals <- animals.cons(a);
-            self;
-        };
-    };
-
-    show_all() : Object {
-        let current : List <- animals in
-        while not current.is_empty() loop {
-            let a : Animal <- current.head() in
-            {
-                a.describe();
-                out_string("It says: ");
-                out_string(a.speak());
-                out_string("\n\n");
-            };
-            current <- current.tail();
-        } pool;
-    };
 };
 
 -- Simple linked list implementation
@@ -101,6 +77,32 @@ class List inherits Object {
             empty <- false;
             self;
         };
+    };
+};
+
+-- The Zoo class manages a list of animals
+class Zoo inherits IO {
+    animals : List <- new List;
+
+    add(a : Animal) : Zoo {
+        {
+            animals <- animals.cons(a);
+            self;
+        };
+    };
+
+    show_all() : Object {
+        let current : List <- animals in
+        while not current.is_empty() loop {
+            let a : Animal <- current.head() in
+            {
+                a.describe();
+                out_string("It says: ");
+                out_string(a.speak());
+                out_string("\n\n");
+            };
+            current <- current.tail();
+        } pool;
     };
 };
 

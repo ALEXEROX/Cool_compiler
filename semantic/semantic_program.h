@@ -6,4 +6,4 @@
 #include "constant_pool.h"
 
 /* Главная функция семантического анализа всей программы */
-bool semantic_program(ProgramNode *p);
+void *semantic_program(ProgramNode *p);

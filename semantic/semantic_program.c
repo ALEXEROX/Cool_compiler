@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "descriptor.h"
+
 /*
  * Главная функция семантического анализа программы:
  *  1) создаёт ClassTable
@@ -13,9 +15,9 @@
  *  4) вызывает semantic_class для каждого класса
  *  5) проверяет наличие Main.main
  */
-bool semantic_program(ProgramNode *p)
+void *semantic_program(ProgramNode *p)
 {
-    if (!p) return false;
+    if (!p) return NULL;
 
     /* ---------------------------
        1. Создаём таблицу классов
@@ -23,9 +25,12 @@ bool semantic_program(ProgramNode *p)
     ClassTable *ct = class_table_create();
     if (!ct) {
         fprintf(stderr, "FATAL: cannot allocate ClassTable\n");
-        return false;
+        return NULL;
     }
-    p->root_classinfo = NULL; /* при необходимости можно хранить там ClassTable */
+
+    ConstantTable *cp = malloc(sizeof(ConstantTable));
+    const_table_init(cp);
+    p->constant_table = cp;
 
     /* ---------------------------
        2. Регистрируем классы программы
@@ -39,7 +44,7 @@ bool semantic_program(ProgramNode *p)
                - неправильное имя
                - запрещённое имя (SELF_TYPE)
             */
-            return false;
+            return NULL;
         }
     }
 
@@ -48,7 +53,7 @@ bool semantic_program(ProgramNode *p)
        --------------------------- */
     if (!class_table_build_inheritance(ct)) {
         /* ошибка уже сообщена */
-        return false;
+        return NULL;
     }
 
     /* ---------------------------
@@ -59,7 +64,21 @@ bool semantic_program(ProgramNode *p)
 
         if (!semantic_class(ct, c)) {
             /* semantic_class сообщает ошибки самостоятельно */
-            return false;
+            return NULL;
+        }
+    }
+
+    for (ClassInfo *c = ct->head; c; c = c->next) {
+        c->class_cp_index = const_add_class(cp, c->name);
+
+        // Добавляем поля
+        for (AttrInfo *a = c->attrs; a; a = a->next) {
+            a->fieldref_index = cp_add_fieldref_from_feature(p->constant_table, c->name, a->ast);
+        }
+
+        // Добавляем методы
+        for (MethodInfo *m = c->methods; m; m = m->next) {
+            m->methodref_index = cp_add_methodref_from_feature(p->constant_table, c->name, m->ast);
         }
     }
 
@@ -70,19 +89,19 @@ bool semantic_program(ProgramNode *p)
     ClassInfo *main_info = class_table_find(ct, "Main");
     if (!main_info) {
         printf("Class Main is not defined");
-        return false;
+        return NULL;
     }
 
     MethodInfo *main_method = class_find_method(main_info, "main");
     if (!main_method) {
         printf("Class Main must define method main()");
-        return false;
+        return NULL;
     }
 
     /* Проверка: у Main.main не должно быть параметров */
     if (main_method->param_count != 0) {
         printf("Main.main() must have no arguments");
-        return false;
+        return NULL;
     }
 
     /* Проверка типа возврата Main.main */
@@ -96,7 +115,9 @@ bool semantic_program(ProgramNode *p)
            Если хочешь строго — оставь эту проверку, иначе убери. */
     }
 
+    const_table_print(p->constant_table, stdout);
+
     /* Если дошли сюда — семантика успешна. */
-    return true;
+    return ct;
 }
 

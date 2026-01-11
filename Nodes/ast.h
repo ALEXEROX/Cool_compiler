@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include "../semantic/constant_pool.h"
 
 extern int AST_NODE_ID_COUNTER;
 
@@ -59,14 +60,13 @@ struct ProgramNode {
     int id;
     ClassList* classes;
     /* семантика */
-    ClassInfo *root_classinfo; /* опционально: ссылка на корневую таблицу или NULL */
-    void *user_data; /* произвольное поле для расширений */
+    ConstantTable * constant_table;
 };
 
 struct ClassNode {
     int id;
     char* name;
-    char* parent; 
+    char* parent;
     FeatureList* features;
     /* семантика */
     ClassInfo *info;    /* заполнится после регистрации класса в ClassTable */
@@ -192,6 +192,7 @@ struct ExprNode {
 
     /* Для идентификаторов: если имя ссылается на локальную переменную — ссылка на VarBinding */
     VarBinding *var_binding;
+    int local_index;
 
     /* Для dispatch: найденный метод и/или индекс в constant pool (если уже создан) */
     MethodInfo *resolved_method;   /* MethodInfo, найденный при семантике (по статическому типу caller) */

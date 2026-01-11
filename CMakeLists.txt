@@ -3,4 +3,14 @@ project(Cool_parser C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Cool_parser main.c)
+add_executable(Cool_parser main.c
+        semantic/class_table.c
+        semantic/constant_pool.c
+        semantic/descriptor.c
+        semantic/object_env.c
+        semantic/semantic_class.c
+        semantic/semantic_expr.c
+        semantic/semantic_method.c
+        semantic/semantic_program.h
+        semantic/semantic_program.c
+)

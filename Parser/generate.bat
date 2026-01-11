@@ -1,5 +1,5 @@
 
-SET BISON=C:/Games/GnuWin32/bin/
+SET BISON=C:/GnuWin32/bin/
 SET CURDIR=%CD%
 SET "FILENAME=Cool_code"
 

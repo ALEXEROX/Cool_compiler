@@ -125,7 +125,14 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             }
 
             /* заполним ссылки в AST для codegen */
-            expr->var_binding = vb;
+            if (vb) {
+                expr->local_index = vb->index;
+                expr->resolved_attr = NULL;
+            } else if (attr) {
+                expr->local_index = -1;
+                expr->resolved_attr = attr;
+            }
+
             expr->resolved_attr = attr;
 
             set_expr_type(expr, t);
@@ -189,7 +196,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             if (!lhs_t) lhs_t = "Object";
 
             /* Проверка совместимости: rhs_t <: lhs_t */
-            if (!is_subtype(ct, rhs_t, lhs_t)) {
+            if (!is_subtype(ct, rhs_t, lhs_t, cls)) {
                 sem_error(expr, "type mismatch in assignment to %s: RHS type %s does not conform to LHS type %s", name, rhs_t ? rhs_t : "(null)", lhs_t);
                 set_expr_type(expr, "Object");
                 return false;
@@ -459,9 +466,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
                 if (b->init) {
                     if (!semantic_check_expr(ct, cls, env, b->init)) {
                         ok = false;
-                    } else if (!is_subtype(ct,
-                                           b->init->static_type,
-                                           type)) {
+                    } else if (!is_subtype(ct, b->init->static_type, type, cls)) {
                         sem_error(expr,
                                   "initializer type '%s' does not conform to '%s' in let binding '%s'",
                                   b->init->static_type, type, name);
@@ -501,13 +506,17 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             const char *method_name = expr->dispatch.method;
             bool ok = true;
 
-            if (!semantic_check_expr(ct, cls, env, caller)) {
-                set_expr_type(expr, "Object");
-                return false;
-            }
+            const char *recv_type;
 
-            const char *recv_type =
-                resolve_receiver_class(cls, caller->static_type);
+            if (!expr->dispatch.caller) {
+                recv_type = cls->name;
+            } else {
+                if (!semantic_check_expr(ct, cls, env, expr->dispatch.caller)) {
+                    set_expr_type(expr, "Object");
+                    return false;
+                }
+                recv_type = resolve_receiver_class(cls, expr->dispatch.caller->static_type);
+            }
 
             MethodInfo *m =
                 class_lookup_method(ct, recv_type, method_name);
@@ -526,9 +535,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             for (; al && i < m->param_count; al = al->next, i++) {
                 if (!semantic_check_expr(ct, cls, env, al->node))
                     ok = false;
-                else if (!is_subtype(ct,
-                                      al->node->static_type,
-                                      m->param_types[i])) {
+                else if (!is_subtype(ct, al->node->static_type, m->param_types[i], cls)) {
                     sem_error(expr,
                               "argument %d of method '%s' has type '%s', expected '%s'",
                               i + 1, m->name,
@@ -546,10 +553,15 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             }
 
             /* Результирующий тип */
-            if (strcmp(m->return_type, "SELF_TYPE") == 0)
-                set_expr_type(expr, caller->static_type);
-            else
+            if (strcmp(m->return_type, "SELF_TYPE") == 0) {
+                if (expr->dispatch.caller)
+                    set_expr_type(expr, expr->dispatch.caller->static_type);
+                else
+                    set_expr_type(expr, cls->name);   /* SELF_TYPE от self */
+            } else {
                 set_expr_type(expr, m->return_type);
+            }
+
 
             /* Для codegen */
             expr->resolved_method = m;
@@ -581,7 +593,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             const char *caller_type =
                 resolve_receiver_class(cls, caller->static_type);
 
-            if (!is_subtype(ct, caller_type, type)) {
+            if (!is_subtype(ct, caller_type, type, cls)) {
                 sem_error(expr,
                           "expression type '%s' does not conform to declared static dispatch type '%s'",
                           caller_type, type);
@@ -605,9 +617,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             for (; al && i < m->param_count; al = al->next, i++) {
                 if (!semantic_check_expr(ct, cls, env, al->node))
                     ok = false;
-                else if (!is_subtype(ct,
-                                      al->node->static_type,
-                                      m->param_types[i])) {
+                else if (!is_subtype(ct, al->node->static_type, m->param_types[i], cls)) {
                     sem_error(expr,
                               "argument %d of method '%s' has type '%s', expected '%s'",
                               i + 1, m->name,

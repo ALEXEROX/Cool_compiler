@@ -1,486 +1,383 @@
 digraph AST {
   node [shape=box];
-  node177 [label="program "];
-  node31 [label="Animal "];
-  node177 -> node31 [label="class"];
-  node1 [label="name "];
-  node31 -> node1 [label="attr_1"];
-  node2 [label="age "];
-  node31 -> node2 [label="attr_2"];
-  node12 [label="init "];
-  node31 -> node12 [label="method_1"];
-  node3 [label="n : String "];
-  node12 -> node3 [label="arg1"];
-  node4 [label="a : Int "];
-  node12 -> node4 [label="arg1"];
-  node11 [label="block
-: ? "];
-  node10 [label="block
-: ? "];
-  node6 [label="name
-: ? "];
-  node5 [label="n
-: ? "];
-  node6 -> node5 [label="arg1"];
-  node10 -> node6 [label="arg1"];
-  node8 [label="age
-: ? "];
-  node7 [label="a
-: ? "];
-  node8 -> node7 [label="arg1"];
-  node10 -> node8 [label="arg2"];
-  node9 [label="self
-: ? "];
-  node10 -> node9 [label="arg3"];
-  node11 -> node10 [label="arg1"];
-  node12 -> node11 [label="body"];
-  node30 [label="describe "];
-  node31 -> node30 [label="method_2"];
-  node29 [label="block
-: ? "];
-  node28 [label="block
-: ? "];
-  node15 [label="out_string()
-: ? "];
-  node14 [label="out_string
-: ? "];
-  node15 -> node14 [label="caller"];
-  node13 [label="(\"Animal: \"
-: (null)) "];
-  node15 -> node13 [label="arg1"];
-  node28 -> node15 [label="arg1"];
-  node18 [label="out_string()
-: ? "];
-  node17 [label="out_string
-: ? "];
-  node18 -> node17 [label="caller"];
-  node16 [label="name
-: ? "];
-  node18 -> node16 [label="arg1"];
-  node28 -> node18 [label="arg2"];
-  node21 [label="out_string()
-: ? "];
-  node20 [label="out_string
-: ? "];
-  node21 -> node20 [label="caller"];
-  node19 [label="(\", age = \"
-: (null)) "];
-  node21 -> node19 [label="arg1"];
-  node28 -> node21 [label="arg3"];
-  node24 [label="out_int()
-: ? "];
-  node23 [label="out_int
-: ? "];
-  node24 -> node23 [label="caller"];
-  node22 [label="age
-: ? "];
-  node24 -> node22 [label="arg1"];
-  node28 -> node24 [label="arg4"];
-  node27 [label="out_string()
-: ? "];
-  node26 [label="out_string
-: ? "];
-  node27 -> node26 [label="caller"];
-  node25 [label="(\"
-\"
-: (null)) "];
-  node27 -> node25 [label="arg1"];
-  node28 -> node27 [label="arg5"];
-  node29 -> node28 [label="arg1"];
-  node30 -> node29 [label="body"];
-  node38 [label="Lion "];
-  node177 -> node38 [label="class"];
-  node34 [label="speak "];
-  node38 -> node34 [label="method_1"];
-  node33 [label="block
-: ? "];
-  node32 [label="(\"Roaaar!\"
-: (null)) "];
-  node33 -> node32 [label="arg1"];
-  node34 -> node33 [label="body"];
-  node37 [label="hunt "];
-  node38 -> node37 [label="method_2"];
-  node36 [label="block
-: ? "];
-  node35 [label="(\"The lion hunts its prey.\"
-: (null)) "];
-  node36 -> node35 [label="arg1"];
-  node37 -> node36 [label="body"];
-  node45 [label="Elephant "];
-  node177 -> node45 [label="class"];
-  node41 [label="speak "];
-  node45 -> node41 [label="method_1"];
-  node40 [label="block
-: ? "];
-  node39 [label="(\"Pawooo!\"
-: (null)) "];
-  node40 -> node39 [label="arg1"];
-  node41 -> node40 [label="body"];
-  node44 [label="remember "];
-  node45 -> node44 [label="method_2"];
-  node43 [label="block
-: ? "];
-  node42 [label="(\"The elephant never forgets.\"
-: (null)) "];
-  node43 -> node42 [label="arg1"];
-  node44 -> node43 [label="body"];
-  node58 [label="Parrot "];
-  node177 -> node58 [label="class"];
-  node47 [label="phrase "];
-  node58 -> node47 [label="attr_1"];
-  node46 [label="(\"Hello!\"
-: (null)) "];
-  node47 -> node46 [label="init"];
-  node54 [label="set_phrase "];
-  node58 -> node54 [label="method_1"];
-  node48 [label="p : String "];
-  node54 -> node48 [label="arg1"];
-  node53 [label="block
-: ? "];
-  node52 [label="block
-: ? "];
-  node50 [label="phrase
-: ? "];
-  node49 [label="p
-: ? "];
-  node50 -> node49 [label="arg1"];
-  node52 -> node50 [label="arg1"];
-  node51 [label="self
-: ? "];
-  node52 -> node51 [label="arg2"];
-  node53 -> node52 [label="arg1"];
-  node54 -> node53 [label="body"];
-  node57 [label="speak "];
-  node58 -> node57 [label="method_2"];
-  node56 [label="block
-: ? "];
-  node55 [label="phrase
-: ? "];
-  node56 -> node55 [label="arg1"];
-  node57 -> node56 [label="body"];
-  node100 [label="Zoo "];
-  node177 -> node100 [label="class"];
-  node60 [label="animals "];
-  node100 -> node60 [label="attr_1"];
-  node59 [label="List "];
-  node60 -> node59 [label="init"];
-  node69 [label="add "];
-  node100 -> node69 [label="method_1"];
-  node61 [label="a : Animal "];
-  node69 -> node61 [label="arg1"];
-  node68 [label="block
-: ? "];
-  node67 [label="block
-: ? "];
-  node65 [label="animals
-: ? "];
-  node64 [label="cons()
-: ? "];
-  node62 [label="animals
-: ? "];
-  node64 -> node62 [label="caller"];
-  node63 [label="a
-: ? "];
-  node64 -> node63 [label="arg1"];
-  node65 -> node64 [label="arg1"];
-  node67 -> node65 [label="arg1"];
-  node66 [label="self
-: ? "];
-  node67 -> node66 [label="arg2"];
-  node68 -> node67 [label="arg1"];
-  node69 -> node68 [label="body"];
-  node99 [label="show_all "];
-  node100 -> node99 [label="method_2"];
-  node98 [label="block
-: ? "];
-  node97 [label="let "];
-  node71 [label="current : List "];
-  node97 -> node71 [label="binding"];
-  node70 [label="animals
-: ? "];
-  node71 -> node70 [label="init"];
-  node96 [label="while
-: ? "];
-  node74 [label="not "];
-  node73 [label="is_empty()
-: ? "];
-  node72 [label="current
-: ? "];
-  node73 -> node72 [label="caller"];
-  node74 -> node73 [label="arg1"];
-  node96 -> node74 [label="cond"];
-  node95 [label="block
-: ? "];
-  node91 [label="let "];
-  node77 [label="a : Animal "];
-  node91 -> node77 [label="binding"];
-  node76 [label="head()
-: ? "];
-  node75 [label="current
-: ? "];
-  node76 -> node75 [label="caller"];
-  node77 -> node76 [label="init"];
-  node90 [label="block
-: ? "];
-  node79 [label="describe()
-: ? "];
-  node78 [label="a
-: ? "];
-  node79 -> node78 [label="caller"];
-  node90 -> node79 [label="arg1"];
-  node82 [label="out_string()
-: ? "];
-  node81 [label="out_string
-: ? "];
-  node82 -> node81 [label="caller"];
-  node80 [label="(\"It says: \"
-: (null)) "];
-  node82 -> node80 [label="arg1"];
-  node90 -> node82 [label="arg2"];
-  node86 [label="out_string()
-: ? "];
-  node85 [label="out_string
-: ? "];
-  node86 -> node85 [label="caller"];
-  node84 [label="speak()
-: ? "];
-  node83 [label="a
-: ? "];
-  node84 -> node83 [label="caller"];
-  node86 -> node84 [label="arg1"];
-  node90 -> node86 [label="arg3"];
-  node89 [label="out_string()
-: ? "];
-  node88 [label="out_string
-: ? "];
-  node89 -> node88 [label="caller"];
-  node87 [label="(\"
+  node169 [label = "program "];
+  node29 [label = "Animal: IO "];
+  node169 -> node29 [label = "class"];
+  node1 [label = "name: String "];
+  node29 -> node1 [label = "attr_1"];
+  node2 [label = "age: Int "];
+  node29 -> node2 [label = "attr_2"];
+  node12 [label = "init: SELF_TYPE "];
+  node29 -> node12 [label = "method_1"];
+  node11 [label = "block: SELF_TYPE "];
+  node10 [label = "block: SELF_TYPE "];
+  node6 [label = "name: String "];
+  node5 [label = "n: String
+id = 0 "];
+  node6 -> node5 [label = "arg1"];
+  node10 -> node6 [label = "arg1"];
+  node8 [label = "age: Int "];
+  node7 [label = "a: Int
+id = 1 "];
+  node8 -> node7 [label = "arg1"];
+  node10 -> node8 [label = "arg2"];
+  node9 [label = "self: SELF_TYPE "];
+  node10 -> node9 [label = "arg3"];
+  node11 -> node10 [label = "arg1"];
+  node12 -> node11 [label = "body"];
+  node25 [label = "describe: Object "];
+  node29 -> node25 [label = "method_2"];
+  node24 [label = "block: Object "];
+  node23 [label = "block: Object "];
+  node14 [label = "out_string(): Object
+owner = Animal "];
+  node13 [label = "(\"Animal: \": String) "];
+  node14 -> node13 [label = "arg1"];
+  node23 -> node14 [label = "arg1"];
+  node16 [label = "out_string(): Object
+owner = Animal "];
+  node15 [label = "name: String
+id = -1 "];
+  node16 -> node15 [label = "arg1"];
+  node23 -> node16 [label = "arg2"];
+  node18 [label = "out_string(): Object
+owner = Animal "];
+  node17 [label = "(\", age = \": String) "];
+  node18 -> node17 [label = "arg1"];
+  node23 -> node18 [label = "arg3"];
+  node20 [label = "out_int(): Object
+owner = Animal "];
+  node19 [label = "age: Int
+id = -1 "];
+  node20 -> node19 [label = "arg1"];
+  node23 -> node20 [label = "arg4"];
+  node22 [label = "out_string(): Object
+owner = Animal "];
+  node21 [label = "(\"
+\": String) "];
+  node22 -> node21 [label = "arg1"];
+  node23 -> node22 [label = "arg5"];
+  node24 -> node23 [label = "arg1"];
+  node25 -> node24 [label = "body"];
+  node28 [label = "speak: String "];
+  node29 -> node28 [label = "method_3"];
+  node27 [label = "block: String "];
+  node26 [label = "(\"Hell! \": String) "];
+  node27 -> node26 [label = "arg1"];
+  node28 -> node27 [label = "body"];
+  node36 [label = "Lion: Animal "];
+  node169 -> node36 [label = "class"];
+  node32 [label = "speak: String "];
+  node36 -> node32 [label = "method_1"];
+  node31 [label = "block: String "];
+  node30 [label = "(\"Roaaar!\": String) "];
+  node31 -> node30 [label = "arg1"];
+  node32 -> node31 [label = "body"];
+  node35 [label = "hunt: String "];
+  node36 -> node35 [label = "method_2"];
+  node34 [label = "block: String "];
+  node33 [label = "(\"The lion hunts its prey.\": String) "];
+  node34 -> node33 [label = "arg1"];
+  node35 -> node34 [label = "body"];
+  node43 [label = "Elephant: Animal "];
+  node169 -> node43 [label = "class"];
+  node39 [label = "speak: String "];
+  node43 -> node39 [label = "method_1"];
+  node38 [label = "block: String "];
+  node37 [label = "(\"Pawooo!\": String) "];
+  node38 -> node37 [label = "arg1"];
+  node39 -> node38 [label = "body"];
+  node42 [label = "remember: String "];
+  node43 -> node42 [label = "method_2"];
+  node41 [label = "block: String "];
+  node40 [label = "(\"The elephant never forgets.\": String) "];
+  node41 -> node40 [label = "arg1"];
+  node42 -> node41 [label = "body"];
+  node56 [label = "Parrot: Animal "];
+  node169 -> node56 [label = "class"];
+  node45 [label = "phrase: String "];
+  node56 -> node45 [label = "attr_1"];
+  node44 [label = "(\"Hello!\": String) "];
+  node45 -> node44 [label = "init"];
+  node52 [label = "set_phrase: Parrot "];
+  node56 -> node52 [label = "method_1"];
+  node51 [label = "block: SELF_TYPE "];
+  node50 [label = "block: SELF_TYPE "];
+  node48 [label = "phrase: String "];
+  node47 [label = "p: String
+id = 0 "];
+  node48 -> node47 [label = "arg1"];
+  node50 -> node48 [label = "arg1"];
+  node49 [label = "self: SELF_TYPE "];
+  node50 -> node49 [label = "arg2"];
+  node51 -> node50 [label = "arg1"];
+  node52 -> node51 [label = "body"];
+  node55 [label = "speak: String "];
+  node56 -> node55 [label = "method_2"];
+  node54 [label = "block: String "];
+  node53 [label = "phrase: String
+id = -1 "];
+  node54 -> node53 [label = "arg1"];
+  node55 -> node54 [label = "body"];
+  node99 [label = "List: Object "];
+  node169 -> node99 [label = "class"];
+  node57 [label = "head_elem: Animal "];
+  node99 -> node57 [label = "attr_1"];
+  node58 [label = "tail_list: List "];
+  node99 -> node58 [label = "attr_2"];
+  node60 [label = "empty: Bool "];
+  node99 -> node60 [label = "attr_3"];
+  node59 [label = "(true: Bool) "];
+  node60 -> node59 [label = "init"];
+  node63 [label = "is_empty: Bool "];
+  node99 -> node63 [label = "method_1"];
+  node62 [label = "block: Bool "];
+  node61 [label = "empty: Bool
+id = -1 "];
+  node62 -> node61 [label = "arg1"];
+  node63 -> node62 [label = "body"];
+  node71 [label = "head: Animal "];
+  node99 -> node71 [label = "method_2"];
+  node70 [label = "block: Animal "];
+  node69 [label = "if: Animal "];
+  node64 [label = "empty: Bool
+id = -1 "];
+  node69 -> node64 [label = "cond"];
+  node67 [label = "block: Animal "];
+  node65 [label = "abort(): Object
+owner = List "];
+  node67 -> node65 [label = "arg1"];
+  node66 [label = "new Animal "];
+  node67 -> node66 [label = "arg2"];
+  node69 -> node67 [label = "then"];
+  node68 [label = "head_elem: Animal
+id = -1 "];
+  node69 -> node68 [label = "else"];
+  node70 -> node69 [label = "arg1"];
+  node71 -> node70 [label = "body"];
+  node79 [label = "tail: List "];
+  node99 -> node79 [label = "method_3"];
+  node78 [label = "block: List "];
+  node77 [label = "if: List "];
+  node72 [label = "empty: Bool
+id = -1 "];
+  node77 -> node72 [label = "cond"];
+  node75 [label = "block: List "];
+  node73 [label = "abort(): Object
+owner = List "];
+  node75 -> node73 [label = "arg1"];
+  node74 [label = "new List "];
+  node75 -> node74 [label = "arg2"];
+  node77 -> node75 [label = "then"];
+  node76 [label = "tail_list: List
+id = -1 "];
+  node77 -> node76 [label = "else"];
+  node78 -> node77 [label = "arg1"];
+  node79 -> node78 [label = "body"];
+  node86 [label = "cons: List "];
+  node99 -> node86 [label = "method_4"];
+  node85 [label = "block: List "];
+  node84 [label = "init_cons(): List
+owner = List "];
+  node81 [label = "new List "];
+  node84 -> node81 [label = "caller"];
+  node82 [label = "a: Animal
+id = 0 "];
+  node84 -> node82 [label = "arg1"];
+  node83 [label = "self: SELF_TYPE "];
+  node84 -> node83 [label = "arg2"];
+  node85 -> node84 [label = "arg1"];
+  node86 -> node85 [label = "body"];
+  node98 [label = "init_cons: List "];
+  node99 -> node98 [label = "method_5"];
+  node97 [label = "block: SELF_TYPE "];
+  node96 [label = "block: SELF_TYPE "];
+  node90 [label = "head_elem: Animal "];
+  node89 [label = "a: Animal
+id = 0 "];
+  node90 -> node89 [label = "arg1"];
+  node96 -> node90 [label = "arg1"];
+  node92 [label = "tail_list: List "];
+  node91 [label = "t: List
+id = 1 "];
+  node92 -> node91 [label = "arg1"];
+  node96 -> node92 [label = "arg2"];
+  node94 [label = "empty: Bool "];
+  node93 [label = "(false: Bool) "];
+  node94 -> node93 [label = "arg1"];
+  node96 -> node94 [label = "arg3"];
+  node95 [label = "self: SELF_TYPE "];
+  node96 -> node95 [label = "arg4"];
+  node97 -> node96 [label = "arg1"];
+  node98 -> node97 [label = "body"];
+  node138 [label = "Zoo: IO "];
+  node169 -> node138 [label = "class"];
+  node101 [label = "animals: List "];
+  node138 -> node101 [label = "attr_1"];
+  node100 [label = "new List "];
+  node101 -> node100 [label = "init"];
+  node110 [label = "add: Zoo "];
+  node138 -> node110 [label = "method_1"];
+  node109 [label = "block: SELF_TYPE "];
+  node108 [label = "block: SELF_TYPE "];
+  node106 [label = "animals: List "];
+  node105 [label = "cons(): List
+owner = List "];
+  node103 [label = "animals: List
+id = -1 "];
+  node105 -> node103 [label = "caller"];
+  node104 [label = "a: Animal
+id = 0 "];
+  node105 -> node104 [label = "arg1"];
+  node106 -> node105 [label = "arg1"];
+  node108 -> node106 [label = "arg1"];
+  node107 [label = "self: SELF_TYPE "];
+  node108 -> node107 [label = "arg2"];
+  node109 -> node108 [label = "arg1"];
+  node110 -> node109 [label = "body"];
+  node137 [label = "show_all: Object "];
+  node138 -> node137 [label = "method_2"];
+  node136 [label = "block: Object "];
+  node135 [label = "let "];
+  node112 [label = "current : List "];
+  node135 -> node112 [label = "binding"];
+  node111 [label = "animals: List
+id = -1 "];
+  node112 -> node111 [label = "init"];
+  node134 [label = "while: Object "];
+  node115 [label = "not "];
+  node114 [label = "is_empty(): Bool
+owner = List "];
+  node113 [label = "current: List
+id = 0 "];
+  node114 -> node113 [label = "caller"];
+  node115 -> node114 [label = "arg1"];
+  node134 -> node115 [label = "cond"];
+  node133 [label = "block: List "];
+  node129 [label = "let "];
+  node118 [label = "a : Animal "];
+  node129 -> node118 [label = "binding"];
+  node117 [label = "head(): Animal
+owner = List "];
+  node116 [label = "current: List
+id = 0 "];
+  node117 -> node116 [label = "caller"];
+  node118 -> node117 [label = "init"];
+  node128 [label = "block: Object "];
+  node120 [label = "describe(): Object
+owner = Animal "];
+  node119 [label = "a: Animal
+id = 1 "];
+  node120 -> node119 [label = "caller"];
+  node128 -> node120 [label = "arg1"];
+  node122 [label = "out_string(): Object
+owner = Zoo "];
+  node121 [label = "(\"It says: \": String) "];
+  node122 -> node121 [label = "arg1"];
+  node128 -> node122 [label = "arg2"];
+  node125 [label = "out_string(): Object
+owner = Zoo "];
+  node124 [label = "speak(): String
+owner = Animal "];
+  node123 [label = "a: Animal
+id = 1 "];
+  node124 -> node123 [label = "caller"];
+  node125 -> node124 [label = "arg1"];
+  node128 -> node125 [label = "arg3"];
+  node127 [label = "out_string(): Object
+owner = Zoo "];
+  node126 [label = "(\"
 
-\"
-: (null)) "];
-  node89 -> node87 [label="arg1"];
-  node90 -> node89 [label="arg4"];
-  node91 -> node90 [label="body"];
-  node95 -> node91 [label="arg1"];
-  node94 [label="current
-: ? "];
-  node93 [label="tail()
-: ? "];
-  node92 [label="current
-: ? "];
-  node93 -> node92 [label="caller"];
-  node94 -> node93 [label="arg1"];
-  node95 -> node94 [label="arg2"];
-  node96 -> node95 [label="body"];
-  node97 -> node96 [label="body"];
-  node98 -> node97 [label="arg1"];
-  node99 -> node98 [label="body"];
-  node145 [label="List "];
-  node177 -> node145 [label="class"];
-  node101 [label="head_elem "];
-  node145 -> node101 [label="attr_1"];
-  node102 [label="tail_list "];
-  node145 -> node102 [label="attr_2"];
-  node104 [label="empty "];
-  node145 -> node104 [label="attr_3"];
-  node103 [label="(1
-: (null)) "];
-  node104 -> node103 [label="init"];
-  node107 [label="is_empty "];
-  node145 -> node107 [label="method_1"];
-  node106 [label="block
-: ? "];
-  node105 [label="empty
-: ? "];
-  node106 -> node105 [label="arg1"];
-  node107 -> node106 [label="body"];
-  node116 [label="head "];
-  node145 -> node116 [label="method_2"];
-  node115 [label="block
-: ? "];
-  node114 [label="if
-: ? "];
-  node108 [label="empty
-: ? "];
-  node114 -> node108 [label="cond"];
-  node112 [label="block
-: ? "];
-  node110 [label="abort()
-: ? "];
-  node109 [label="abort
-: ? "];
-  node110 -> node109 [label="caller"];
-  node112 -> node110 [label="arg1"];
-  node111 [label="Animal "];
-  node112 -> node111 [label="arg2"];
-  node114 -> node112 [label="then"];
-  node113 [label="head_elem
-: ? "];
-  node114 -> node113 [label="else"];
-  node115 -> node114 [label="arg1"];
-  node116 -> node115 [label="body"];
-  node125 [label="tail "];
-  node145 -> node125 [label="method_3"];
-  node124 [label="block
-: ? "];
-  node123 [label="if
-: ? "];
-  node117 [label="empty
-: ? "];
-  node123 -> node117 [label="cond"];
-  node121 [label="block
-: ? "];
-  node119 [label="abort()
-: ? "];
-  node118 [label="abort
-: ? "];
-  node119 -> node118 [label="caller"];
-  node121 -> node119 [label="arg1"];
-  node120 [label="List "];
-  node121 -> node120 [label="arg2"];
-  node123 -> node121 [label="then"];
-  node122 [label="tail_list
-: ? "];
-  node123 -> node122 [label="else"];
-  node124 -> node123 [label="arg1"];
-  node125 -> node124 [label="body"];
-  node132 [label="cons "];
-  node145 -> node132 [label="method_4"];
-  node126 [label="a : Animal "];
-  node132 -> node126 [label="arg1"];
-  node131 [label="block
-: ? "];
-  node130 [label="init_cons()
-: ? "];
-  node127 [label="List "];
-  node130 -> node127 [label="caller"];
-  node128 [label="a
-: ? "];
-  node130 -> node128 [label="arg1"];
-  node129 [label="self
-: ? "];
-  node130 -> node129 [label="arg2"];
-  node131 -> node130 [label="arg1"];
-  node132 -> node131 [label="body"];
-  node144 [label="init_cons "];
-  node145 -> node144 [label="method_5"];
-  node133 [label="a : Animal "];
-  node144 -> node133 [label="arg1"];
-  node134 [label="t : List "];
-  node144 -> node134 [label="arg1"];
-  node143 [label="block
-: ? "];
-  node142 [label="block
-: ? "];
-  node136 [label="head_elem
-: ? "];
-  node135 [label="a
-: ? "];
-  node136 -> node135 [label="arg1"];
-  node142 -> node136 [label="arg1"];
-  node138 [label="tail_list
-: ? "];
-  node137 [label="t
-: ? "];
-  node138 -> node137 [label="arg1"];
-  node142 -> node138 [label="arg2"];
-  node140 [label="empty
-: ? "];
-  node139 [label="(0
-: (null)) "];
-  node140 -> node139 [label="arg1"];
-  node142 -> node140 [label="arg3"];
-  node141 [label="self
-: ? "];
-  node142 -> node141 [label="arg4"];
-  node143 -> node142 [label="arg1"];
-  node144 -> node143 [label="body"];
-  node176 [label="Main "];
-  node177 -> node176 [label="class"];
-  node147 [label="zoo "];
-  node176 -> node147 [label="attr_1"];
-  node146 [label="Zoo "];
-  node147 -> node146 [label="init"];
-  node175 [label="main "];
-  node176 -> node175 [label="method_1"];
-  node174 [label="block
-: ? "];
-  node173 [label="block
-: ? "];
-  node153 [label="add()
-: ? "];
-  node148 [label="zoo
-: ? "];
-  node153 -> node148 [label="caller"];
-  node152 [label="init()
-: ? "];
-  node149 [label="Lion "];
-  node152 -> node149 [label="caller"];
-  node150 [label="(\"Simba\"
-: (null)) "];
-  node152 -> node150 [label="arg1"];
-  node151 [label="(5
-: (null)) "];
-  node152 -> node151 [label="arg2"];
-  node153 -> node152 [label="arg1"];
-  node173 -> node153 [label="arg1"];
-  node159 [label="add()
-: ? "];
-  node154 [label="zoo
-: ? "];
-  node159 -> node154 [label="caller"];
-  node158 [label="init()
-: ? "];
-  node155 [label="Elephant "];
-  node158 -> node155 [label="caller"];
-  node156 [label="(\"Dumbo\"
-: (null)) "];
-  node158 -> node156 [label="arg1"];
-  node157 [label="(10
-: (null)) "];
-  node158 -> node157 [label="arg2"];
-  node159 -> node158 [label="arg1"];
-  node173 -> node159 [label="arg2"];
-  node167 [label="add()
-: ? "];
-  node160 [label="zoo
-: ? "];
-  node167 -> node160 [label="caller"];
-  node166 [label="set_phrase()
-: ? "];
-  node164 [label="init()
-: ? "];
-  node161 [label="Parrot "];
-  node164 -> node161 [label="caller"];
-  node162 [label="(\"Kesha\"
-: (null)) "];
-  node164 -> node162 [label="arg1"];
-  node163 [label="(2
-: (null)) "];
-  node164 -> node163 [label="arg2"];
-  node166 -> node164 [label="caller"];
-  node165 [label="(\"Polly wants a cracker!\"
-: (null)) "];
-  node166 -> node165 [label="arg1"];
-  node167 -> node166 [label="arg1"];
-  node173 -> node167 [label="arg3"];
-  node170 [label="out_string()
-: ? "];
-  node169 [label="out_string
-: ? "];
-  node170 -> node169 [label="caller"];
-  node168 [label="(\"Welcome to the Cool Zoo!
+\": String) "];
+  node127 -> node126 [label = "arg1"];
+  node128 -> node127 [label = "arg4"];
+  node129 -> node128 [label = "body"];
+  node133 -> node129 [label = "arg1"];
+  node132 [label = "current: List "];
+  node131 [label = "tail(): List
+owner = List "];
+  node130 [label = "current: List
+id = 0 "];
+  node131 -> node130 [label = "caller"];
+  node132 -> node131 [label = "arg1"];
+  node133 -> node132 [label = "arg2"];
+  node134 -> node133 [label = "body"];
+  node135 -> node134 [label = "body"];
+  node136 -> node135 [label = "arg1"];
+  node137 -> node136 [label = "body"];
+  node168 [label = "Main: IO "];
+  node169 -> node168 [label = "class"];
+  node140 [label = "zoo: Zoo "];
+  node168 -> node140 [label = "attr_1"];
+  node139 [label = "new Zoo "];
+  node140 -> node139 [label = "init"];
+  node167 [label = "main: Object "];
+  node168 -> node167 [label = "method_1"];
+  node166 [label = "block: Object "];
+  node165 [label = "block: Object "];
+  node146 [label = "add(): Zoo
+owner = Zoo "];
+  node141 [label = "zoo: Zoo
+id = -1 "];
+  node146 -> node141 [label = "caller"];
+  node145 [label = "init(): Lion
+owner = Lion "];
+  node142 [label = "new Lion "];
+  node145 -> node142 [label = "caller"];
+  node143 [label = "(\"Simba\": String) "];
+  node145 -> node143 [label = "arg1"];
+  node144 [label = "(5: Int) "];
+  node145 -> node144 [label = "arg2"];
+  node146 -> node145 [label = "arg1"];
+  node165 -> node146 [label = "arg1"];
+  node152 [label = "add(): Zoo
+owner = Zoo "];
+  node147 [label = "zoo: Zoo
+id = -1 "];
+  node152 -> node147 [label = "caller"];
+  node151 [label = "init(): Elephant
+owner = Elephant "];
+  node148 [label = "new Elephant "];
+  node151 -> node148 [label = "caller"];
+  node149 [label = "(\"Dumbo\": String) "];
+  node151 -> node149 [label = "arg1"];
+  node150 [label = "(10: Int) "];
+  node151 -> node150 [label = "arg2"];
+  node152 -> node151 [label = "arg1"];
+  node165 -> node152 [label = "arg2"];
+  node160 [label = "add(): Zoo
+owner = Zoo "];
+  node153 [label = "zoo: Zoo
+id = -1 "];
+  node160 -> node153 [label = "caller"];
+  node159 [label = "set_phrase(): Parrot
+owner = Parrot "];
+  node157 [label = "init(): Parrot
+owner = Parrot "];
+  node154 [label = "new Parrot "];
+  node157 -> node154 [label = "caller"];
+  node155 [label = "(\"Kesha\": String) "];
+  node157 -> node155 [label = "arg1"];
+  node156 [label = "(2: Int) "];
+  node157 -> node156 [label = "arg2"];
+  node159 -> node157 [label = "caller"];
+  node158 [label = "(\"Polly wants a cracker!\": String) "];
+  node159 -> node158 [label = "arg1"];
+  node160 -> node159 [label = "arg1"];
+  node165 -> node160 [label = "arg3"];
+  node162 [label = "out_string(): Object
+owner = Main "];
+  node161 [label = "(\"Welcome to the Cool Zoo!
 
-\"
-: (null)) "];
-  node170 -> node168 [label="arg1"];
-  node173 -> node170 [label="arg4"];
-  node172 [label="show_all()
-: ? "];
-  node171 [label="zoo
-: ? "];
-  node172 -> node171 [label="caller"];
-  node173 -> node172 [label="arg5"];
-  node174 -> node173 [label="arg1"];
-  node175 -> node174 [label="body"];
+\": String) "];
+  node162 -> node161 [label = "arg1"];
+  node165 -> node162 [label = "arg4"];
+  node164 [label = "show_all(): Object
+owner = Zoo "];
+  node163 [label = "zoo: Zoo
+id = -1 "];
+  node164 -> node163 [label = "caller"];
+  node165 -> node164 [label = "arg5"];
+  node166 -> node165 [label = "arg1"];
+  node167 -> node166 [label = "body"];
 }

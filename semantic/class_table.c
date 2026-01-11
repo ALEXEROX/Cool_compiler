@@ -1,4 +1,5 @@
 #include "class_table.h"
+#include "descriptor.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -9,6 +10,62 @@ static char *strdup_safe(const char *s) {
     char *r = malloc(strlen(s) + 1);
     strcpy(r, s);
     return r;
+}
+
+static void add_builtin_method(ClassInfo *cls, const char *name, FormalList *formals, const char *ret_type){
+    MethodInfo *m = methodinfo_create(name, formals, ret_type);
+    m->ast = NULL;
+
+    int id = 1;
+    for (MethodInfo *it = cls->methods; it; it = it->next)
+        id++;
+    m->id = id;
+
+    m->next = cls->methods;
+    cls->methods = m;
+}
+
+
+/* ---- Создание базовых классов ---- */
+static ClassNode *make_builtin_object_node(void) {
+    ClassNode *c = calloc(1, sizeof(ClassNode));
+    c->id = 0;                 /* специальный id */
+    c->name = strdup_safe("Object");
+    c->parent = NULL;
+    c->features = NULL;
+    return c;
+}
+
+static ClassNode *make_builtin_io_node(void) {
+    ClassNode *c = calloc(1, sizeof(ClassNode));
+    c->id = 1;
+    c->name = strdup_safe("IO");
+    c->parent = strdup_safe("Object");
+    return c;
+}
+
+static ClassNode *make_builtin_int_node(void) {
+    ClassNode *c = calloc(1, sizeof(ClassNode));
+    c->id = 2;
+    c->name = strdup_safe("Int");
+    c->parent = strdup_safe("Object");
+    return c;
+}
+
+static ClassNode *make_builtin_bool_node(void) {
+    ClassNode *c = calloc(1, sizeof(ClassNode));
+    c->id = 3;
+    c->name = strdup_safe("Bool");
+    c->parent = strdup_safe("Object");
+    return c;
+}
+
+static ClassNode *make_builtin_string_node(void) {
+    ClassNode *c = calloc(1, sizeof(ClassNode));
+    c->id = 4;
+    c->name = strdup_safe("String");
+    c->parent = strdup_safe("Object");
+    return c;
 }
 
 /* ---- создание/инициализация/освобождение ---- */
@@ -22,6 +79,51 @@ void class_table_init(ClassTable *ct) {
     if (!ct) return;
     ct->head = NULL;
     ct->count = 0;
+
+    ClassNode *object_node = make_builtin_object_node();
+    class_table_add_class(ct, object_node);
+
+    ClassInfo *object_info = class_table_find(ct, "Object");
+
+    add_builtin_method(object_info, "abort", NULL, "Object");
+
+    ClassNode *io_node = make_builtin_io_node();
+    class_table_add_class(ct, io_node);
+
+    ClassInfo *io_info = class_table_find(ct, "IO");
+    {
+        FormalNode *f = make_formal("x", "String");
+        FormalList *fl = malloc(sizeof(FormalList));
+        fl->node = f;
+        fl->next = NULL;
+        add_builtin_method(io_info, "out_string", fl, "Object");
+    }
+
+    {
+        FormalNode *f = make_formal("x", "Int");
+        FormalList *fl = malloc(sizeof(FormalList));
+        fl->node = f;
+        fl->next = NULL;
+        add_builtin_method(io_info, "out_int", fl, "Object");
+    }
+
+    {
+        add_builtin_method(io_info, "in_string", NULL, "Object");
+    }
+
+    {
+        add_builtin_method(io_info, "in_int", NULL, "Object");
+    }
+
+    ClassNode *int_node = make_builtin_int_node();
+    class_table_add_class(ct, int_node);
+
+    ClassNode *bool_node = make_builtin_bool_node();
+    class_table_add_class(ct, bool_node);
+
+    ClassNode *string_node = make_builtin_string_node();
+    class_table_add_class(ct, string_node);
+
 }
 
 static void free_attr_list(AttrInfo *a) {
@@ -299,14 +401,26 @@ MethodInfo *class_find_method(ClassInfo *cls, const char *method_name) {
 }
 
 /* ---- is_subtype ---- */
-bool is_subtype(ClassTable *ct, const char *child, const char *parent) {
+bool is_subtype(ClassTable *ct, const char *child, const char *parent, ClassInfo *current_class) {
     if (!ct || !child || !parent) return false;
-    if (strcmp(child, parent) == 0) return true;
+
+    /* SELF_TYPE <: CurrentClass */
+    if (strcmp(child, "SELF_TYPE") == 0)
+        child = current_class->name;
+
+    if (strcmp(parent, "SELF_TYPE") == 0)
+        parent = current_class->name;
+
+    if (strcmp(child, parent) == 0)
+        return true;
+
     ClassInfo *c = class_table_find(ct, child);
     while (c && c->parent_info) {
-        if (strcmp(c->parent_info->name, parent) == 0) return true;
+        if (strcmp(c->parent_info->name, parent) == 0)
+            return true;
         c = c->parent_info;
     }
+
     return false;
 }
 

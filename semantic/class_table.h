@@ -19,6 +19,7 @@ typedef struct AttrInfo {
     char *type;             /* имя типа в формате Cool */
     FeatureNode *ast;       /* ссылка на AST-узел */
     AttrInfo *next;
+    int fieldref_index;
 } AttrInfo;
 
 /* Информация о методе */
@@ -31,6 +32,7 @@ typedef struct MethodInfo {
     char *return_type;
     FeatureNode *ast;
     MethodInfo *next;
+    int methodref_index;
 } MethodInfo;
 
 /* Список детей (для удобства) */
@@ -57,6 +59,7 @@ typedef struct ClassInfo {
     int visit_state; /* 0 = unvisited, 1 = visiting, 2 = done */
 
     ClassInfo *next; /* для списка в ClassTable */
+    int class_cp_index;
 } ClassInfo;
 
 /* Таблица классов */
@@ -97,7 +100,7 @@ MethodInfo *class_lookup_method(ClassTable *ct, const char *class_name, const ch
 MethodInfo *class_find_method(ClassInfo *cls, const char *method_name);
 
 /* Проверки наследования и вспомогательные функции */
-bool is_subtype(ClassTable *ct, const char *child, const char *parent);
+bool is_subtype(ClassTable *ct, const char *child, const char *parent, ClassInfo *current_class);
 char *lub(ClassTable *ct, const char *A, const char *B); /* возвращает malloc'ed строку */
 
 /* Получение JVM-описания сигнатуры метода (malloc'ed строка) */

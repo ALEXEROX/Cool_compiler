@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "object_env.h"
+#include "semantic_expr.h"
+
 /*
  * Обёртка для совместимости с существующим semantic_program.c
  * Всё, что ей нужно сделать — найти ClassInfo по имени класса.
@@ -139,6 +142,28 @@ bool semantic_check_class(ClassTable *ct, ClassInfo *cls) {
                 ok = false;
             if (!check_attr_override(cls, a))
                 ok = false;
+
+            if (f->attr.init) {
+                ObjectEnv env;
+                object_env_init(&env);
+
+                /* self доступен */
+                object_env_enter_scope(&env);
+                object_env_add(&env, "self", "SELF_TYPE", NULL);
+
+                if (!semantic_check_expr(ct, cls, &env, f->attr.init))
+                    ok = false;
+                else if (!is_subtype(ct, f->attr.init->static_type, a->type, cls)) {
+                    fprintf(
+                        stderr,
+                        "Semantic error: initializer type '%s' does not conform to attribute type '%s' in class %s\n",
+                        f->attr.init->static_type, a->type, cls->name);
+                    ok = false;
+                }
+
+                object_env_exit_scope(&env);
+                object_env_free(&env);
+            }
         }
         else if (f->kind == FEATURE_METHOD) {
             MethodInfo *m = class_add_method_from_feature(cls, f);
@@ -149,7 +174,10 @@ bool semantic_check_class(ClassTable *ct, ClassInfo *cls) {
             if (!check_method_types(ct, cls, m))
                 ok = false;
         }
+
     }
+
+
 
     /* 2. Семантика тела методов */
     for (MethodInfo *m = cls->methods; m; m = m->next) {
