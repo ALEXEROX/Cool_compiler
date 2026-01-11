@@ -63,33 +63,10 @@ int cp_add_methodref_from_cool(ConstantTable *cp,
 
 /** Methodref из FEATURE_METHOD */
 int cp_add_methodref_from_feature(ConstantTable *cp,
-                                  const char *class_name,
+                                  ClassInfo cl,
                                   FeatureNode *method_feature);
 
 /** Fieldref из FEATURE_ATTR */
 int cp_add_fieldref_from_feature(ConstantTable *cp,
                                  const char *class_name,
                                  FeatureNode *attr_feature);
-
-/* ============================================================
- *  Обёртки для dispatch-выражений
- * ============================================================ */
-
-/**
- * Dynamic dispatch: obj.method(args)
- * Требует ClassTable: мы ищем фактический MethodInfo
- * и строим правильный Methodref.
- *
- * static_type — статический тип caller.
- */
-int cp_add_methodref_from_dispatch(ConstantTable *cp,
-                                   ClassTable *ct,
-                                   const char *static_type,
-                                   ExprNode *dispatch_expr);
-
-/**
- * Static dispatch: obj@Type.method(args)
- */
-int cp_add_methodref_from_static_dispatch(ConstantTable *cp,
-                                          ClassTable *ct,
-                                          ExprNode *static_dispatch_expr);

@@ -14,6 +14,21 @@ static char *strdup_safe(const char *s) {
     return r;
 }
 
+// Находит класс, где определён метод (т.е. первый метод с таким именем по цепочке наследования)
+static ClassInfo *find_method_owner(ClassInfo *cls, const char *method_name) {
+    ClassInfo *cur = cls;
+    while (cur->parent_info) {
+        cur = cur->parent_info;
+        for (MethodInfo *m = cur->methods; m; m = m->next) {
+            if (strcmp(m->name, method_name) == 0) {
+                return cur;  // вернули класс-владелец
+            }
+        }
+
+    }
+    return cls;
+}
+
 /* ============================================================
  *  COOL-type → JVM descriptor
  * ============================================================ */
@@ -106,11 +121,7 @@ int cp_add_fieldref_from_cool(ConstantTable *cp,
     return const_add_fieldref(cp, cls_idx, nat);
 }
 
-int cp_add_methodref_from_cool(ConstantTable *cp,
-                               const char *class_name,
-                               const char *method_name,
-                               FormalList *formals,
-                               const char *return_type)
+int cp_add_methodref_from_cool(ConstantTable *cp, const char *class_name, const char *method_name, FormalList *formals, const char *return_type)
 {
     if (!cp || !class_name || !method_name) return 0;
 
@@ -127,20 +138,14 @@ int cp_add_methodref_from_cool(ConstantTable *cp,
  *  FeatureNode обёртки
  * ============================================================ */
 
-int cp_add_methodref_from_feature(ConstantTable *cp,
-                                  const char *class_name,
-                                  FeatureNode *method_feature)
+int cp_add_methodref_from_feature(ConstantTable *cp, ClassInfo cl, FeatureNode *method_feature)
 {
-    if (!cp || !class_name || !method_feature) return 0;
+    if (!cp || !cl.name || !method_feature) return 0;
     if (method_feature->kind != FEATURE_METHOD) return 0;
 
-    return cp_add_methodref_from_cool(
-        cp,
-        class_name,
-        method_feature->name,
-        method_feature->method.formals,
-        method_feature->method.return_type
-    );
+    ClassInfo *method_owner = find_method_owner(&cl, method_feature->name);
+
+    return cp_add_methodref_from_cool(cp, method_owner->name, method_feature->name, method_feature->method.formals, method_feature->method.return_type);
 }
 
 int cp_add_fieldref_from_feature(ConstantTable *cp,
@@ -156,61 +161,4 @@ int cp_add_fieldref_from_feature(ConstantTable *cp,
         attr_feature->name,
         attr_feature->attr.type
     );
-}
-
-/* ============================================================
- *  Dispatch обёртки — используют ClassTable
- * ============================================================ */
-
-int cp_add_methodref_from_dispatch(ConstantTable *cp,
-                                   ClassTable *ct,
-                                   const char *static_type,
-                                   ExprNode *dispatch_expr)
-{
-    if (!cp || !ct || !static_type || !dispatch_expr) return 0;
-    if (dispatch_expr->kind != EXPR_DISPATCH) return 0;
-
-    const char *method_name = dispatch_expr->dispatch.method;
-
-    /* Находим метод по иерархии — это важно для JVM invokevirtual */
-    MethodInfo *m = class_lookup_method(ct, static_type, method_name);
-    if (!m) return 0;
-
-    /* Генерируем дескриптор */
-    char *desc = methodinfo_get_descriptor(m);
-
-    /* Создаём NameAndType */
-    int nat = const_add_name_and_type(cp, m->name, desc);
-
-    /* Добавляем Class */
-    int cls_idx = const_add_class(cp, static_type);
-
-    /* Methodref */
-    int mref = const_add_methodref(cp, cls_idx, nat);
-
-    free(desc);
-    return mref;
-}
-
-int cp_add_methodref_from_static_dispatch(ConstantTable *cp,
-                                          ClassTable *ct,
-                                          ExprNode *static_dispatch_expr)
-{
-    if (!cp || !ct || !static_dispatch_expr) return 0;
-    if (static_dispatch_expr->kind != EXPR_STATIC_DISPATCH) return 0;
-
-    const char *class_name = static_dispatch_expr->static_dispatch.type;
-    const char *method_name = static_dispatch_expr->static_dispatch.method;
-
-    MethodInfo *m = class_lookup_method(ct, class_name, method_name);
-    if (!m) return 0;
-
-    char *desc = methodinfo_get_descriptor(m);
-
-    int nat = const_add_name_and_type(cp, m->name, desc);
-    int cls_idx = const_add_class(cp, class_name);
-    int mref = const_add_methodref(cp, cls_idx, nat);
-
-    free(desc);
-    return mref;
 }

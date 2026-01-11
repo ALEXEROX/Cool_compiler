@@ -202,8 +202,13 @@ ClassInfo *class_table_add_class(ClassTable *ct, ClassNode *cnode) {
     ci->attrs = NULL;
     ci->methods = NULL;
     ci->visit_state = 0;
-    ci->next = ct->head;
-    ct->head = ci;
+    if (!ct->head) {
+        ct->head = ci;
+    } else {
+        ClassInfo *last = ct->head;
+        while (last->next) last = last->next;
+        last->next = ci;
+    }
     return ci;
 }
 
@@ -517,3 +522,125 @@ void class_table_print(ClassTable *ct, FILE *out) {
         }
     }
 }
+
+static void layout_attrs(ClassInfo *cls) {
+    int offset = 0;
+
+    if (cls->parent_info)
+        offset = cls->parent_info->object_size;
+
+    for (AttrInfo *a = cls->attrs; a; a = a->next) {
+        a->field_offset = offset++;
+    }
+
+    cls->object_size = offset;
+}
+
+
+static void layout_methods(ClassInfo *cls) {
+    /* 1. Наследуем vtable родителя */
+    if (cls->parent_info) {
+        ClassInfo *p = cls->parent_info;
+
+        cls->vtable_size = p->vtable_size;
+        cls->vtable = malloc(sizeof(MethodInfo*) * cls->vtable_size);
+
+        for (int i = 0; i < cls->vtable_size; i++)
+            cls->vtable[i] = p->vtable[i];
+    } else {
+        cls->vtable_size = 0;
+        cls->vtable = NULL;
+    }
+
+    /* 2. Обрабатываем методы класса */
+    for (MethodInfo *m = cls->methods; m; m = m->next) {
+        int slot = -1;
+
+        /* ищем override */
+        for (int i = 0; i < cls->vtable_size; i++) {
+            if (strcmp(cls->vtable[i]->name, m->name) == 0) {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot >= 0) {
+            /* override */
+            cls->vtable[slot] = m;
+            m->vtable_index = slot;
+        } else {
+            /* новый метод */
+            m->vtable_index = cls->vtable_size;
+
+            cls->vtable = realloc(
+                cls->vtable,
+                sizeof(MethodInfo*) * (cls->vtable_size + 1)
+            );
+
+            cls->vtable[cls->vtable_size] = m;
+            cls->vtable_size++;
+        }
+    }
+}
+
+
+static void layout_class_recursive(ClassInfo *cls) {
+    layout_attrs(cls);
+    layout_methods(cls);
+
+    for (ClassChild *ch = cls->children; ch; ch = ch->next)
+        layout_class_recursive(ch->child);
+}
+
+void class_table_layout(ClassTable *ct) {
+    ClassInfo *object = class_table_find(ct, "Object");
+    if (!object) {
+        fprintf(stderr, "Internal error: Object class missing\n");
+        return;
+    }
+
+    layout_class_recursive(object);
+}
+
+static MethodInfo * find_method_by_vtable_index(ClassInfo *cls, int index, ClassInfo **owner)
+{
+    /* сначала ищем в текущем классе */
+    for (MethodInfo *m = cls->methods; m; m = m->next) {
+        if (m->vtable_index == index) {
+            if (owner) *owner = cls;
+            return m;
+        }
+    }
+
+    /* если не нашли — поднимаемся к родителю */
+    if (cls->parent_info)
+        return find_method_by_vtable_index(cls->parent_info, index, owner);
+
+    return NULL;
+}
+
+void class_print_vtable(ClassInfo *cls)
+{
+    fprintf(stdout, "Class %s (vtable_size = %d)\n",
+            cls->name, cls->vtable_size);
+
+    for (int i = 0; i < cls->vtable_size; i++) {
+        ClassInfo *owner = NULL;
+        MethodInfo *m = find_method_by_vtable_index(cls, i, &owner);
+
+        if (m && owner) {
+            fprintf(stdout, "  [%d] %s.%s\n", i, owner->name, m->name);
+        } else {
+            fprintf(stdout, "  [%d] <empty>\n", i);
+        }
+    }
+}
+
+void class_table_print_vtables(ClassTable *ct)
+{
+    for (ClassInfo *c = ct->head; c; c = c->next) {
+        class_print_vtable(c);
+        fprintf(stdout, "\n");
+    }
+}
+

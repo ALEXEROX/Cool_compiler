@@ -78,9 +78,12 @@ void *semantic_program(ProgramNode *p)
 
         // Добавляем методы
         for (MethodInfo *m = c->methods; m; m = m->next) {
-            m->methodref_index = cp_add_methodref_from_feature(p->constant_table, c->name, m->ast);
+            m->methodref_index = cp_add_methodref_from_feature(p->constant_table, *c, m->ast);
         }
     }
+
+    class_table_layout(ct);
+    class_table_print_vtables(ct);
 
     /* ---------------------------
        5. Проверка наличия Main.main

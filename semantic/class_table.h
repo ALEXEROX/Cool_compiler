@@ -20,6 +20,7 @@ typedef struct AttrInfo {
     FeatureNode *ast;       /* ссылка на AST-узел */
     AttrInfo *next;
     int fieldref_index;
+    int field_offset;
 } AttrInfo;
 
 /* Информация о методе */
@@ -33,6 +34,7 @@ typedef struct MethodInfo {
     FeatureNode *ast;
     MethodInfo *next;
     int methodref_index;
+    int vtable_index;
 } MethodInfo;
 
 /* Список детей (для удобства) */
@@ -60,6 +62,9 @@ typedef struct ClassInfo {
 
     ClassInfo *next; /* для списка в ClassTable */
     int class_cp_index;
+    int object_size;
+    MethodInfo **vtable;
+    int vtable_size;
 } ClassInfo;
 
 /* Таблица классов */
@@ -111,3 +116,7 @@ MethodInfo *methodinfo_create(const char *name, FormalList *formals, const char 
 
 /* Печать для отладки */
 void class_table_print(ClassTable *ct, FILE *out);
+
+void class_table_layout(ClassTable *ct);
+static void layout_class_recursive(ClassInfo *cls);
+void class_table_print_vtables(ClassTable *ct);

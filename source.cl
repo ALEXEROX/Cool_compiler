@@ -25,7 +25,7 @@ class Animal inherits IO {
 
 class Lion inherits Animal {
     speak() : String { "Roaaar!"; };
-
+	
     hunt() : String { "The lion hunts its prey."; };
 };
 
@@ -45,7 +45,10 @@ class Parrot inherits Animal {
         };
     };
 
-    speak() : String { phrase; };
+    speak() : String { 
+	self@Animal.speak();
+	phrase; 
+	};
 };
 
 -- Simple linked list implementation

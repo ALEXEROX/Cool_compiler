@@ -168,7 +168,7 @@ static void print_expr(ExprNode* e){
                 snprintf(buf, sizeof(buf),
                          "%s: %s\nid = -1",
                          e->object.name,
-                         e->resolved_attr->type);
+                         e->resolved_attr != NULL ? e->resolved_attr->type : "?");
             }
             else if (e->static_type) {
                 snprintf(buf, sizeof(buf),
@@ -232,7 +232,7 @@ static void print_expr(ExprNode* e){
         }
         case EXPR_STATIC_DISPATCH:{
             char buf[256];
-            snprintf(buf,sizeof(buf),"%s@%s", e->static_dispatch.method,e->static_dispatch.type);
+            snprintf(buf,sizeof(buf),"%s@%s: %s", e->static_dispatch.method,e->static_dispatch.type,e->static_type);
             print_node(e->id,buf);
             if(e->static_dispatch.caller){ print_expr(e->static_dispatch.caller); edge(e->id,e->static_dispatch.caller->id,"caller"); }
             print_expr_list(e->static_dispatch.args,e->id);
