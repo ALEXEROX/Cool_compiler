@@ -60,7 +60,7 @@ struct ProgramNode {
     int id;
     ClassList* classes;
     /* семантика */
-    ConstantTable * constant_table;
+    ConstantTable *constant_table;
 };
 
 struct ClassNode {
