@@ -33,14 +33,18 @@ static ClassInfo *find_method_owner(ClassInfo *cls, const char *method_name) {
  *  COOL-type → JVM descriptor
  * ============================================================ */
 
-char *cool_type_to_descriptor(const char *type) {
+char *cool_type_to_descriptor(const char *type, const char *class_name) {
     if (!type) return strdup_safe("");
 
     if (strcmp(type, "Int") == 0)      return strdup_safe("I");
     if (strcmp(type, "Bool") == 0)     return strdup_safe("Z");
     if (strcmp(type, "String") == 0)   return strdup_safe("Ljava/lang/String;");
     if (strcmp(type, "Object") == 0)   return strdup_safe("Ljava/lang/Object;");
-    if (strcmp(type, "SELF_TYPE") == 0) return strdup_safe("LSELF_TYPE;");
+    if (strcmp(type, "SELF_TYPE") == 0) {
+        char *self = malloc(strlen(class_name) + 3);
+        sprintf(self, "L%s;", class_name);
+        return strdup_safe(self);
+    }
 
     /* Если уже похоже на дескриптор L...; */
     size_t len = strlen(type);
@@ -57,7 +61,7 @@ char *cool_type_to_descriptor(const char *type) {
  *  Дескриптор метода
  * ============================================================ */
 
-char *make_method_descriptor(FormalList *formals, const char *return_type) {
+char *make_method_descriptor(FormalList *formals, const char *return_type, const char *class_name) {
     size_t size = 128;
     char *buf = malloc(size);
     size_t pos = 0;
@@ -65,7 +69,7 @@ char *make_method_descriptor(FormalList *formals, const char *return_type) {
     buf[pos++] = '(';
 
     for (FormalList *f = formals; f; f = f->next) {
-        char *d = cool_type_to_descriptor(f->node->type);
+        char *d = cool_type_to_descriptor(f->node->type,class_name);
         size_t dl = strlen(d);
 
         if (pos + dl + 16 >= size) {
@@ -80,7 +84,7 @@ char *make_method_descriptor(FormalList *formals, const char *return_type) {
 
     buf[pos++] = ')';
 
-    char *ret = cool_type_to_descriptor(return_type ? return_type : "Object");
+    char *ret = cool_type_to_descriptor(return_type ? return_type : "Object", class_name);
     size_t rl = strlen(ret);
 
     if (pos + rl + 2 >= size) {
@@ -114,7 +118,7 @@ int cp_add_fieldref_from_cool(ConstantTable *cp,
 
     int cls_idx = cp_add_class_from_cool(cp, class_name);
 
-    char *desc = cool_type_to_descriptor(cool_type ? cool_type : "Object");
+    char *desc = cool_type_to_descriptor(cool_type ? cool_type : "Object",class_name);
     int nat = const_add_name_and_type(cp, field_name, desc);
     free(desc);
 
@@ -127,7 +131,7 @@ int cp_add_methodref_from_cool(ConstantTable *cp, const char *class_name, const 
 
     int cls_idx = cp_add_class_from_cool(cp, class_name);
 
-    char *desc = make_method_descriptor(formals, return_type);
+    char *desc = make_method_descriptor(formals, return_type, class_name);
     int nat = const_add_name_and_type(cp, method_name, desc);
     free(desc);
 

@@ -20,7 +20,7 @@
  *   "MyClass" -> "LMyClass;"
  *   "SELF_TYPE" -> "LSELF_TYPE;"  (решается позднее в семантике)
  */
-char *cool_type_to_descriptor(const char *type);
+char *cool_type_to_descriptor(const char *type, const char *class_name);
 
 /* ============================================================
  *  Дескриптор метода
@@ -35,7 +35,7 @@ char *cool_type_to_descriptor(const char *type);
  *     return_type = "Bool"
  *     => "(ILjava/lang/String;)Z"
  */
-char *make_method_descriptor(FormalList *formals, const char *return_type);
+char *make_method_descriptor(FormalList *formals, const char *return_type, const char *class_name);
 
 /* ============================================================
  *  Обёртки для constant pool: COOL → JVM

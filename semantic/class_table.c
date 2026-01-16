@@ -470,38 +470,6 @@ char *lub(ClassTable *ct, const char *A, const char *B) {
     return res;
 }
 
-/* ---- descriptor из MethodInfo ---- */
-char *methodinfo_get_descriptor(MethodInfo *m) {
-    if (!m) return strdup_safe("()V");
-    /* Создать временный FormalList для make_method_descriptor */
-    FormalList *head = NULL, *tail = NULL;
-    for (int i = 0; i < m->param_count; ++i) {
-        FormalNode *fn = malloc(sizeof(FormalNode));
-        fn->id = -1;
-        fn->name = strdup_safe(m->param_names[i]);
-        fn->type = strdup_safe(m->param_types[i]);
-        FormalList *fl = malloc(sizeof(FormalList));
-        fl->node = fn;
-        fl->next = NULL;
-        if (!head) head = tail = fl;
-        else { tail->next = fl; tail = fl; }
-    }
-
-    char *desc = make_method_descriptor(head, m->return_type);
-
-    /* cleanup */
-    FormalList *it = head;
-    while (it) {
-        FormalList *n = it->next;
-        free(it->node->name);
-        free(it->node->type);
-        free(it->node);
-        free(it);
-        it = n;
-    }
-    return desc;
-}
-
 /* ---- Печать для отладки ---- */
 void class_table_print(ClassTable *ct, FILE *out) {
     fprintf(out, "ClassTable (count=%d)\n", ct->count);

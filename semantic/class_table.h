@@ -108,9 +108,6 @@ MethodInfo *class_find_method(ClassInfo *cls, const char *method_name);
 bool is_subtype(ClassTable *ct, const char *child, const char *parent, ClassInfo *current_class);
 char *lub(ClassTable *ct, const char *A, const char *B); /* возвращает malloc'ed строку */
 
-/* Получение JVM-описания сигнатуры метода (malloc'ed строка) */
-char *methodinfo_get_descriptor(MethodInfo *m);
-
 /* Создать MethodInfo вручную (используется внутри, но экспортируем) */
 MethodInfo *methodinfo_create(const char *name, FormalList *formals, const char *return_type);
 

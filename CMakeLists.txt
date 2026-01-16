@@ -15,4 +15,6 @@ add_executable(Cool_parser main.c
         semantic/semantic_program.c
         codegen/jvm/jvm_writer.c
         codegen/jvm/jvm_writer.h
+        codegen/jvm/jvm_types.c
+        codegen/jvm/jvm_types.h
 )
