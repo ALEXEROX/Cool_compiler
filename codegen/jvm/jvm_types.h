@@ -5,7 +5,7 @@
 
 #define JVM_TYPES_H
 
-#include "C:/Users/Дмитрий/OneDrive/Документы/GitHub/Cool_compiler/semantic/class_table.h"
+#include "../../semantic/class_table.h"
 
 /* access flags */
 #define JVM_ACC_PUBLIC    0x0001
