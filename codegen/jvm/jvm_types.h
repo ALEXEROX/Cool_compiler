@@ -3,8 +3,6 @@
 //
 #pragma once
 
-#define JVM_TYPES_H
-
 #include "../../semantic/class_table.h"
 
 /* access flags */

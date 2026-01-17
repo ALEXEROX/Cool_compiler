@@ -2,7 +2,6 @@
 // Created by Дмитрий on 17.01.2026.
 //
 #pragma once
-#define EMIT_CONSTANT_POOL_H
 #include <stdio.h>
 #include "../../semantic/constant_pool.h"
 

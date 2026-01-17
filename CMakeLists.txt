@@ -19,4 +19,6 @@ add_executable(Cool_parser main.c
         codegen/jvm/jvm_types.h
         codegen/emit/emit_constant_pool.c
         codegen/emit/emit_constant_pool.h
+        codegen/emit/emit_class_header.c
+        codegen/emit/emit_class_header.h
 )

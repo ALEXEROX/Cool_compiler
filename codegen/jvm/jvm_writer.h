@@ -3,8 +3,6 @@
 //
 #pragma once
 
-#define JVM_WRITER_H
-
 #include <stdint.h>
 #include <stdio.h>
 
