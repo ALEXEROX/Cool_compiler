@@ -74,6 +74,8 @@ void *semantic_program(ProgramNode *p)
         // Добавляем поля
         for (AttrInfo *a = c->attrs; a; a = a->next) {
             a->fieldref_index = cp_add_fieldref_from_feature(p->constant_table, c->name, a->ast);
+            a->name_utf8_index = const_add_utf8(p->constant_table, a->name);
+            a->descriptor_utf8_index = const_add_utf8(p->constant_table, cool_type_to_descriptor(a->ast->attr_info->type ? a->ast->attr_info->type : "Object",c->name));
         }
 
         // Добавляем методы
@@ -119,6 +121,7 @@ void *semantic_program(ProgramNode *p)
     }
 
     const_table_print(p->constant_table, stdout);
+    class_table_print(ct, stdout);
 
     /* Если дошли сюда — семантика успешна. */
     return ct;

@@ -21,6 +21,8 @@ typedef struct AttrInfo {
     AttrInfo *next;
     int fieldref_index;
     int field_offset;
+    int name_utf8_index;
+    int descriptor_utf8_index;
 } AttrInfo;
 
 /* Информация о методе */

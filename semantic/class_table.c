@@ -477,7 +477,7 @@ void class_table_print(ClassTable *ct, FILE *out) {
         fprintf(out, " Class #%d: %s parent=%s\n", c->id, c->name, c->parent ? c->parent : "(null)");
         fprintf(out, "  Attrs:\n");
         for (AttrInfo *a = c->attrs; a; a = a->next) {
-            fprintf(out, "   - %s : %s\n", a->name, a->type);
+            fprintf(out, "   - %s : %s\n name_utf8_index: %d, descriptor_utf8_index: %d\n", a->name, a->type, a->name_utf8_index, a->descriptor_utf8_index);
         }
         fprintf(out, "  Methods:\n");
         for (MethodInfo *m = c->methods; m; m = m->next) {
