@@ -81,6 +81,11 @@ void *semantic_program(ProgramNode *p)
         // Добавляем методы
         for (MethodInfo *m = c->methods; m; m = m->next) {
             m->methodref_index = cp_add_methodref_from_feature(p->constant_table, *c, m->ast);
+            if (m->methodref_index != 0) {
+                m->name_utf8_index = const_add_utf8(p->constant_table, m->name);
+                ClassInfo *method_owner = find_method_owner(c, m->ast->name);
+                m->descriptor_utf8_index = const_add_utf8(p->constant_table, cool_type_to_descriptor(m->ast->method_info->return_type ? m->ast->method_info->return_type : "Object", method_owner->name));
+            }
         }
     }
 

@@ -15,7 +15,7 @@ static char *strdup_safe(const char *s) {
 }
 
 // Находит класс, где определён метод (т.е. первый метод с таким именем по цепочке наследования)
-static ClassInfo *find_method_owner(ClassInfo *cls, const char *method_name) {
+ClassInfo *find_method_owner(ClassInfo *cls, const char *method_name) {
     ClassInfo *cur = cls;
     while (cur->parent_info) {
         cur = cur->parent_info;

@@ -14,7 +14,9 @@ static char *strdup_safe(const char *s) {
 
 static void add_builtin_method(ClassInfo *cls, const char *name, FormalList *formals, const char *ret_type){
     MethodInfo *m = methodinfo_create(name, formals, ret_type);
-    m->ast = NULL;
+    m->ast = make_method(name, formals, ret_type, NULL);
+
+    m->ast->method_info = m;
 
     int id = 1;
     for (MethodInfo *it = cls->methods; it; it = it->next)
@@ -487,6 +489,7 @@ void class_table_print(ClassTable *ct, FILE *out) {
                 if (i+1 < m->param_count) fprintf(out, ", ");
             }
             fprintf(out, ") : %s\n", m->return_type);
+            fprintf(out, "name_utf8_index: %d, descriptor_utf8_index: %d\n", m->name_utf8_index, m->descriptor_utf8_index);
         }
     }
 }

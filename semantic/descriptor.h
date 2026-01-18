@@ -70,3 +70,5 @@ int cp_add_methodref_from_feature(ConstantTable *cp,
 int cp_add_fieldref_from_feature(ConstantTable *cp,
                                  const char *class_name,
                                  FeatureNode *attr_feature);
+
+ClassInfo *find_method_owner(ClassInfo *cls, const char *method_name);

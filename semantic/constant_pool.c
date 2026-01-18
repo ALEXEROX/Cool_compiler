@@ -34,6 +34,8 @@ static int const_table_add_entry(ConstantTable *tbl, ConstantKind kind) {
 void const_table_init(ConstantTable *tbl) {
     tbl->head = tbl->tail = NULL;
     tbl->count = 0;
+
+    const_add_utf8(tbl,"Code");
 }
 
 /* ==========================================

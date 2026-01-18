@@ -37,6 +37,8 @@ typedef struct MethodInfo {
     MethodInfo *next;
     int methodref_index;
     int vtable_index;
+    int name_utf8_index;
+    int descriptor_utf8_index;
 } MethodInfo;
 
 /* Список детей (для удобства) */
