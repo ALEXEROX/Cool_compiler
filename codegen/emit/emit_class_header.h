@@ -3,7 +3,7 @@
 //
 #pragma once
 #include <stdio.h>
-#include "../../semantic/class_table.h"
+#include "emit_utils.h"
 
 /*
  * Генерирует заголовок JVM .class файла:
@@ -13,5 +13,5 @@
  *  - this_class
  *  - super_class
  */
-void emit_class_header(FILE *out, ClassInfo *cls);
+void emit_class_header(FILE *out);
 

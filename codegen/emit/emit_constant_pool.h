@@ -4,6 +4,7 @@
 #pragma once
 #include <stdio.h>
 #include "../../semantic/constant_pool.h"
+#include "emit_utils.h"
 
 /*
  * Сериализует ConstantTable в формате JVM
