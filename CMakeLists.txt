@@ -29,4 +29,6 @@ add_executable(Cool_parser main.c
         codegen/emit/emit_fields.h
         codegen/emit/emit_methods.c
         codegen/emit/emit_methods.h
+        codegen/emit/emit_code_attr.c
+        codegen/emit/emit_code_attr.h
 )

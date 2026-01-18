@@ -4,6 +4,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdint.h>
+#include "emit_code_attr.h"
 
 struct ClassInfo;
 
