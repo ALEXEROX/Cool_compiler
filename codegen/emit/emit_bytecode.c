@@ -68,6 +68,17 @@ void emit_iconst(BytecodeBuffer *bc, int v) {
     }
 }
 
+void emit_ldc(BytecodeBuffer *bc, int cp_index) {
+    bc_emit_u1(bc, 0x12);      /* ldc */
+    bc_emit_u1(bc, cp_index); /* index (u1!) */
+}
+
+void emit_ldc_classref(BytecodeBuffer *bc, int class_index) {
+    bc_emit_u1(bc, 0x12); // ldc
+    bc_emit_u1(bc, class_index); // индекс класса в CP
+}
+
+
 void emit_iadd(BytecodeBuffer *bc) { bc_emit_u1(bc, 0x60); }
 void emit_isub(BytecodeBuffer *bc) { bc_emit_u1(bc, 0x64); }
 void emit_imul(BytecodeBuffer *bc) { bc_emit_u1(bc, 0x68); }
@@ -101,4 +112,61 @@ void emit_new(BytecodeBuffer *bc, int idx) {
     bc_emit_u1(bc, 0xBB);
     bc_emit_u2(bc, idx);
 }
+
+void emit_checkcast(BytecodeBuffer *bc, int class_index) {
+    bc_emit_u1(bc, 0xC0);     /* checkcast */
+    bc_emit_u2(bc, class_index);
+}
+
+int emit_ifeq(BytecodeBuffer *bc) {
+    int pos = bc->size;
+    bc_emit_u1(bc, 0x99); /* ifeq */
+    bc_emit_u2(bc, 0);    /* placeholder */
+    return pos;
+}
+
+int emit_goto(BytecodeBuffer *bc) {
+    int pos = bc->size;
+    bc_emit_u1(bc, 0xA7); /* goto */
+    bc_emit_u2(bc, 0);
+    return pos;
+}
+
+void patch_jump(BytecodeBuffer *bc, int jump_pos, int target_pos) {
+    int offset = target_pos - jump_pos;
+    bc->data[jump_pos + 1] = (offset >> 8) & 0xFF;
+    bc->data[jump_pos + 2] = offset & 0xFF;
+}
+
+// возвращает позицию placeholder для будущей метки
+int emit_label_placeholder(BytecodeBuffer *bc) {
+    return bc->size;
+}
+
+// вставляет "метку" (на самом деле просто помечаем offset)
+void emit_label(BytecodeBuffer *bc, int label_pos) {
+    // для простого варианта ничего не делаем,
+    // реальные оффсеты вычисляются через patch_jump
+}
+
+// временный goto (placeholder)
+int emit_goto_placeholder(BytecodeBuffer *bc) {
+    return emit_goto(bc);
+}
+
+// patch для goto/ifeq/ifne
+void patch_label(BytecodeBuffer *bc, int placeholder, int target_pos) {
+    patch_jump(bc, placeholder, target_pos);
+}
+
+void emit_instanceof(BytecodeBuffer *bc, int class_index) {
+    bc_emit_u1(bc, 0xC1);  // instanceof
+    bc_emit_u2(bc, class_index);
+}
+
+int allocate_tmp_local(void *node) {
+    static int counter = 1; // простой счетчик
+    return counter++;
+}
+
 
