@@ -17,6 +17,7 @@ void bc_init(BytecodeBuffer *bc) {
     bc->data = NULL;
     bc->size = 0;
     bc->capacity = 0;
+    bc->locals_count = 0;
 }
 
 void bc_free(BytecodeBuffer *bc) {
@@ -169,4 +170,7 @@ int allocate_tmp_local(void *node) {
     return counter++;
 }
 
+void emit_push_null(BytecodeBuffer *bc) {
+    bc_emit_u1(bc, 0x01);  // aconst_null
+}
 

@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "descriptor.h"
+#include "../Nodes/ast.h"
+
 /* ==========================================
  * Вспомогательные функции
  * ========================================== */
@@ -36,6 +39,11 @@ void const_table_init(ConstantTable *tbl) {
     tbl->count = 0;
 
     const_add_utf8(tbl,"Code");
+    const_add_class(tbl,"java/lang/Object");
+    const_add_utf8(tbl,"<init>");
+    const_add_utf8(tbl,"()V");
+    int id = const_add_name_and_type(tbl,"<init>","()V");
+    const_add_methodref(tbl,3,id);
 }
 
 /* ==========================================

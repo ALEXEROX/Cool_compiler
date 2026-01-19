@@ -12,7 +12,7 @@
  * Обёртка для совместимости с существующим semantic_program.c
  * Всё, что ей нужно сделать — найти ClassInfo по имени класса.
  */
-bool semantic_class(ClassTable *ct, ClassNode *cnode) {
+bool semantic_class(ClassTable *ct, ClassNode *cnode, ConstantTable *cp) {
     if (!ct || !cnode) {
         fprintf(stderr, "INTERNAL ERROR: semantic_class called with null args\n");
         return false;
@@ -26,7 +26,7 @@ bool semantic_class(ClassTable *ct, ClassNode *cnode) {
         return false;
     }
 
-    return semantic_check_class(ct, ci);
+    return semantic_check_class(ct, ci, cp);
 }
 
 
@@ -127,7 +127,7 @@ static bool check_attr_type(ClassTable *ct, ClassInfo *cls, AttrInfo *a) {
 /* -------------------------------------------------------------------------
    Основная функция семантики класса
    ------------------------------------------------------------------------- */
-bool semantic_check_class(ClassTable *ct, ClassInfo *cls) {
+bool semantic_check_class(ClassTable *ct, ClassInfo *cls, ConstantTable *cp) {
     bool ok = true;
 
     ClassNode *cnode = cls->ast;
@@ -151,7 +151,7 @@ bool semantic_check_class(ClassTable *ct, ClassInfo *cls) {
                 object_env_enter_scope(&env);
                 object_env_add(&env, "self", "SELF_TYPE", NULL);
 
-                if (!semantic_check_expr(ct, cls, &env, f->attr.init))
+                if (!semantic_check_expr(ct, cls, &env, f->attr.init, cp))
                     ok = false;
                 else if (!is_subtype(ct, f->attr.init->static_type, a->type, cls)) {
                     fprintf(
@@ -181,7 +181,7 @@ bool semantic_check_class(ClassTable *ct, ClassInfo *cls) {
 
     /* 2. Семантика тела методов */
     for (MethodInfo *m = cls->methods; m; m = m->next) {
-        if (!semantic_check_method(ct, cls, m))
+        if (!semantic_check_method(ct, cls, m, cp))
             ok = false;
     }
 

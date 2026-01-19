@@ -42,7 +42,7 @@ static bool check_return_type(ClassTable *ct, const char *type, const char *meth
 /* ---------------------------------------------------------------------
    Главная функция: semantic_check_method
    --------------------------------------------------------------------- */
-bool semantic_check_method(ClassTable *ct, ClassInfo *cls, MethodInfo *m) {
+bool semantic_check_method(ClassTable *ct, ClassInfo *cls, MethodInfo *m, ConstantTable *cp) {
     bool ok = true;
 
     /* 1. Проверяем корректность объявленных типов */
@@ -110,7 +110,7 @@ bool semantic_check_method(ClassTable *ct, ClassInfo *cls, MethodInfo *m) {
 
     ExprNode *body = m->ast->method.body;
 
-    if (!semantic_check_expr(ct, cls, &env, body))
+    if (!semantic_check_expr(ct, cls, &env, body, cp))
         ok = false;
 
     if (!ok)

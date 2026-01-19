@@ -6,24 +6,43 @@
 #include "emit_utils.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
-void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index)
+#include "emit_bytecode.h"
+#include "emit_expr.h"
+
+void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, int class_index, ConstantTable* ct)
 {
     if (!out || !m) return;
 
     /* attribute_name_index -> "Code" */
     write_u2(out, (uint16_t)code_utf8_index);
 
-    /* ---- bytecode ---- */
-    uint8_t code_buf[16];
-    int pc = 0;
+    /* ---- Bytecode ---- */
+    BytecodeBuffer bc;
+    bc_init(&bc);
 
-    /* aconst_null */
-    code_buf[pc++] = 0x01;
-    /* areturn */
-    code_buf[pc++] = 0xB0;
+    /* Генерация тела метода */
+    if (m->ast && m->ast->kind == FEATURE_METHOD && m->ast->method.body) {
+        emit_expr(&bc, m->ast->method.body, class_index, ct);
+    }
 
-    uint32_t code_length = pc;
+
+    /* Добавляем правильный return */
+    if (strcmp(m->return_type, "Int") == 0 || strcmp(m->return_type, "Bool") == 0) {
+        bc_emit_u1(&bc, 0xAC); // ireturn
+    } else if (m->return_type && strcmp(m->return_type, "SELF_TYPE") != 0) {
+        bc_emit_u1(&bc, 0xB0); // areturn
+    } else {
+        bc_emit_u1(&bc, 0xB1); // return (void)
+    }
+
+    uint32_t code_length = bc.size;
+
+    fprintf(stderr,
+    "CODE: max_stack=%d max_locals=%d code_length=%u\n",
+    1, 1 + m->param_count, code_length);
+
 
     /*
      * attribute_length =
@@ -38,22 +57,89 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index)
 
     write_u4(out, attribute_length);
 
-    /* max_stack */
-    write_u2(out, 1);
+    /* max_stack: пока временно, можно анализировать позже */
+    write_u2(out, 32);
 
-    /* max_locals
-     * 1 = this
-     * + параметры
-     */
+    /* max_locals: this + параметры метода */
     write_u2(out, 1 + m->param_count);
 
     /* code_length */
     write_u4(out, code_length);
 
     /* code[] */
-    for (uint32_t i = 0; i < code_length; i++) {
-        write_u1(out, code_buf[i]);
+    fwrite(bc.data, 1, bc.size, out);
+    fprintf(stderr, "WROTE %u CODE BYTES\n", code_length);
+
+    /* exception_table_length */
+    write_u2(out, 0);
+
+    /* attributes_count */
+    write_u2(out, 0);
+
+    bc_free(&bc);
+}
+
+void emit_init_code_attribute(FILE *out, ClassInfo *cls)
+{
+    /* attribute_name_index -> "Code" */
+    write_u2(out, (uint16_t)1);
+
+    /*
+     * bytecode:
+     *
+     * Object:
+     *   aload_0
+     *   return
+     *
+     * Other:
+     *   aload_0
+     *   invokespecial super.<init>()V
+     *   return
+     */
+
+    uint8_t code[8];
+    int pc = 0;
+
+    /* aload_0 */
+    code[pc++] = 0x2A;
+
+    if (cls->parent_info) {
+        /* invokespecial */
+        code[pc++] = 0xB7;
+        code[pc++] = (cls->parent_info->class_cp_index >> 8) & 0xFF;
+        code[pc++] = 7 & 0xFF;
     }
+
+    /* return */
+    code[pc++] = 0xB1;
+
+    uint32_t code_length = pc;
+
+    /*
+     * attribute_length =
+     * max_stack(2)
+     * + max_locals(2)
+     * + code_length(4)
+     * + code[]
+     * + exception_table_length(2)
+     * + attributes_count(2)
+     */
+    uint32_t attribute_length =
+            2 + 2 + 4 + code_length + 2 + 2;
+
+    write_u4(out, attribute_length);
+
+    /* max_stack */
+    write_u2(out, 1);
+
+    /* max_locals: только this */
+    write_u2(out, 1);
+
+    /* code_length */
+    write_u4(out, code_length);
+
+    /* code[] */
+    fwrite(code, 1, code_length, out);
 
     /* exception_table_length */
     write_u2(out, 0);
@@ -61,4 +147,5 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index)
     /* attributes_count */
     write_u2(out, 0);
 }
+
 

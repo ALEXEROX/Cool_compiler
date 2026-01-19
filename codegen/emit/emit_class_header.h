@@ -4,6 +4,7 @@
 #pragma once
 #include <stdio.h>
 #include "emit_utils.h"
+#include "../../semantic/class_table.h"
 
 /*
  * Генерирует заголовок JVM .class файла:
@@ -13,5 +14,5 @@
  *  - this_class
  *  - super_class
  */
-void emit_class_header(FILE *out);
+void emit_class_header(FILE *out, ClassInfo *cls, ConstantTable *cp);
 

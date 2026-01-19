@@ -56,17 +56,18 @@ void *semantic_program(ProgramNode *p)
         return NULL;
     }
 
-    /* ---------------------------
-       4. Семантика каждого класса
-       --------------------------- */
     for (ClassList *cl = p->classes; cl; cl = cl->next) {
         ClassNode *c = cl->node;
 
-        if (!semantic_class(ct, c)) {
+        if (!semantic_class(ct, c, p->constant_table)) {
             /* semantic_class сообщает ошибки самостоятельно */
             return NULL;
         }
     }
+
+    /* ---------------------------
+       4. Семантика каждого класса
+       --------------------------- */
 
     for (ClassInfo *c = ct->head; c; c = c->next) {
         c->class_cp_index = const_add_class(cp, c->name);
@@ -84,13 +85,14 @@ void *semantic_program(ProgramNode *p)
             if (m->methodref_index != 0) {
                 m->name_utf8_index = const_add_utf8(p->constant_table, m->name);
                 ClassInfo *method_owner = find_method_owner(c, m->ast->name);
-                m->descriptor_utf8_index = const_add_utf8(p->constant_table, cool_type_to_descriptor(m->ast->method_info->return_type ? m->ast->method_info->return_type : "Object", method_owner->name));
+                m->descriptor_utf8_index = const_add_utf8(p->constant_table, make_method_descriptor(m->ast->method.formals, m->ast->method_info->return_type,method_owner->name));
             }
         }
     }
 
+
     class_table_layout(ct);
-    class_table_print_vtables(ct);
+    //class_table_print_vtables(ct);
 
     /* ---------------------------
        5. Проверка наличия Main.main

@@ -4,4 +4,4 @@
 #include "../Nodes/ast.h"
 #include <stdbool.h>
 
-bool semantic_check_method(ClassTable *ct, ClassInfo *cls, MethodInfo *m);
+bool semantic_check_method(ClassTable *ct, ClassInfo *cls, MethodInfo *m, ConstantTable *cp);

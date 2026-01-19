@@ -15,7 +15,7 @@ static char *strdup_safe(const char *s) {
 void object_env_init(ObjectEnv *env) {
     if (!env) return;
     env->top = NULL;
-    env->next_local_index = 0;
+    env->next_local_index = 1;
 }
 
 /* Освобождение всех фреймов и биндингов */

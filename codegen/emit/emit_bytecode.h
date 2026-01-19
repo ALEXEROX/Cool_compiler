@@ -12,6 +12,7 @@ typedef struct {
     uint8_t *data;
     int size;
     int capacity;
+    int locals_count;
 } BytecodeBuffer;
 
 /* buffer */
@@ -79,6 +80,7 @@ void emit_instanceof(BytecodeBuffer *bc, int class_index);
    Вспомогательные функции
    ============================ */
 int allocate_tmp_local(void *node);  // выделяет tmp локал для ExprNode/CaseNode
+void emit_push_null(BytecodeBuffer *bc);
 
 /* return */
 void emit_ireturn(BytecodeBuffer *bc);

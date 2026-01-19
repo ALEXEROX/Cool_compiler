@@ -17,4 +17,4 @@
  * Возвращает true при отсутствии ошибок (функция сама печатает сообщения об ошибках).
  * В результате expr->static_type должен быть установлен (malloc'ed строка).
  */
-bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNode *expr);
+bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNode *expr, ConstantTable *cp);

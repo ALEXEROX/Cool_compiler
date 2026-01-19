@@ -6,4 +6,15 @@
 #include "../../Nodes/ast.h"   /* ExprNode, ExprKind */
 #include "emit_bytecode.h"
 
-void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index);
+typedef struct LocalVar {
+    const char *name;
+    int index;
+    struct LocalVar *next;
+} LocalVar;
+
+typedef struct EmitContext {
+    LocalVar *locals;
+    int next_local;
+} EmitContext;
+
+void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* ct);

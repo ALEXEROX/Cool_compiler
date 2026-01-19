@@ -11,4 +11,4 @@ struct ClassInfo;
 /*
  * Генерация method_info[] для одного класса
  */
-void emit_methods(FILE *out, struct ClassInfo *cls);
+void emit_methods(FILE *out, struct ClassInfo *cls, ConstantTable* ct);

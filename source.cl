@@ -21,6 +21,8 @@ class Animal inherits IO {
     };
 	
 	speak() : String { "Hell! "; };
+	
+	get_age() : Int {age;};
 };
 
 class Lion inherits Animal {
@@ -63,6 +65,8 @@ class List inherits Object {
         if empty then { abort(); new Animal; }
         else head_elem fi;
     };
+	
+	set_head(a : Animal) : Animal {head_elem <- a;}; 
 
     tail() : List {
         if empty then { abort(); new List; }
@@ -107,6 +111,8 @@ class Zoo inherits IO {
             current <- current.tail();
         } pool;
     };
+	
+	get_zoo() : List {animals;};
 };
 
 -- Main program entry point
@@ -121,6 +127,42 @@ class Main inherits IO {
 
             out_string("Welcome to the Cool Zoo!\n\n");
             zoo.show_all();
+			
+			let swapped : Bool <- true in
+            let current : List <- zoo.get_zoo() in
+            {
+                while swapped loop
+                    {
+                        swapped <- false;
+                        current <- zoo.get_zoo();
+                        while not current.is_empty() loop
+                            {
+                                let next : List <- current.tail() in
+                                if not next.is_empty() then
+                                    {
+                                        let a1 : Animal <- current.head() in
+                                        let a2 : Animal <- next.head() in
+                                        if a1.get_age() < a2.get_age() then
+                                            {
+                                                current.set_head(a2);
+                                                next.set_head(a1);
+                                                swapped <- true;
+                                            }
+                                        else
+                                            { false; }
+                                        fi;
+                                    }
+                                else
+                                    { false; }
+                                fi;
+                                current <- current.tail();
+                            }
+                        pool;
+                    }
+                pool;
+                out_string("After sorting by age:\n");
+                zoo.show_all();
+            };
         };
     };
 };

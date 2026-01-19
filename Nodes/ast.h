@@ -201,6 +201,8 @@ struct ExprNode {
     /* Для обращения к полю: resolved AttrInfo + Fieldref index */
     AttrInfo *resolved_attr;
     int fieldref_index;
+    int classref_index;
+    int stringref_index;
 
     /* Опциональные данные для codegen/доп.аннотаций */
     int tmp_local_index;           /* при генерации можно выделить временный локал */

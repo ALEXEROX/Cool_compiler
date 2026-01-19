@@ -14,22 +14,35 @@
 
 /* индекс UTF8 "Code" в constant pool */
 #define CODE_ATTR_NAME_INDEX 1
+
+
+void emit_jvm_init_method(FILE *out, ClassInfo *cls) {
+    write_u2(out, ACC_PUBLIC);              // access_flags
+    write_u2(out, 4);    // "<init>"
+    write_u2(out, 5);    // "()V"
+    write_u2(out, 1);                       // attributes_count
+
+    emit_init_code_attribute(out, cls);
+}
+
 /* -------------------------------------------------
  * Methods emission
  * ------------------------------------------------- */
-void emit_methods(FILE *out, ClassInfo *cls) {
+void emit_methods(FILE *out, ClassInfo *cls, ConstantTable* ct) {
     if (!out || !cls) {
         write_u2(out, 0);
         return;
     }
 
     /* 1. считаем методы */
-    int count = 0;
+    int count = 1;
     for (MethodInfo *m = cls->methods; m; m = m->next) {
         count++;
     }
 
     write_u2(out, (uint16_t)count);
+
+    emit_jvm_init_method(out, cls);
 
     /* 2. пишем каждый method_info */
     for (MethodInfo *m = cls->methods; m; m = m->next) {
@@ -46,6 +59,8 @@ void emit_methods(FILE *out, ClassInfo *cls) {
         /* attributes_count = 1 (Code) */
         write_u2(out, 1);
 
-        emit_code_attribute(out, m, CODE_ATTR_NAME_INDEX);
+        emit_code_attribute(out, m, CODE_ATTR_NAME_INDEX, cls->class_cp_index, ct);
     }
 }
+
+

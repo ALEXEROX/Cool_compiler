@@ -5,6 +5,7 @@
 #include "Parser/cool_code.tab.c"
 #include "Dot/ast_dot.c"
 #include "semantic/semantic_program.h"
+#include "codegen/emit/emit_class_header.h"
 
 extern ProgramNode *program;
 
@@ -40,6 +41,14 @@ int main(int argc, char *argv[])
 
     save_ast_dot(program);
     system("C:\\\"Program Files\"\\Graphviz\\bin\\dot.exe Dot\\cool_dot.dot -Tsvg > semantic_dot.svg");
+
+    char name[255];
+    for (ClassInfo *c = ct->head; c; c = c->next) {
+        snprintf(name, sizeof(name), "%s.class",c->name);
+        FILE *f = fopen(name, "wb");
+        emit_class_header(f, c,program->constant_table);
+        fclose(f);
+    }
 
 
 

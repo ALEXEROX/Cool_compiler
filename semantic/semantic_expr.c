@@ -91,7 +91,7 @@ static const char *resolve_receiver_class(ClassInfo *cls, const char *t) {
 
 
 /* Основная функция: реализуем только часть узлов здесь */
-bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNode *expr) {
+bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNode *expr, ConstantTable *cp) {
     if (!expr) return true;
 
     switch (expr->kind) {
@@ -101,6 +101,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
 
         case EXPR_STR_CONST:
             set_expr_type(expr, "String");
+            expr->stringref_index = const_add_string(cp, expr->str_const.value);
             return true;
 
         case EXPR_BOOL_CONST:
@@ -186,7 +187,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             }
 
             /* Проверим RHS */
-            if (!semantic_check_expr(ct, cls, env, rhs)) {
+            if (!semantic_check_expr(ct, cls, env, rhs, cp)) {
                 set_expr_type(expr, "Object");
                 return false;
             }
@@ -210,7 +211,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
         case EXPR_UNOP: {
             ExprNode *e = expr->unop.expr;
 
-            if (!semantic_check_expr(ct, cls, env, e)) {
+            if (!semantic_check_expr(ct, cls, env, e, cp)) {
                 set_expr_type(expr, "Object");
                 return false;
             }
@@ -252,8 +253,8 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             ExprNode *l = expr->binop.left;
             ExprNode *r = expr->binop.right;
 
-            if (!semantic_check_expr(ct, cls, env, l) ||
-                !semantic_check_expr(ct, cls, env, r)) {
+            if (!semantic_check_expr(ct, cls, env, l, cp) ||
+                !semantic_check_expr(ct, cls, env, r, cp)) {
                 set_expr_type(expr, "Object");
                 return false;
             }
@@ -343,11 +344,11 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
 
             bool ok = true;
 
-            if (!semantic_check_expr(ct, cls, env, cond))
+            if (!semantic_check_expr(ct, cls, env, cond, cp))
                 ok = false;
-            if (!semantic_check_expr(ct, cls, env, then_e))
+            if (!semantic_check_expr(ct, cls, env, then_e, cp))
                 ok = false;
-            if (!semantic_check_expr(ct, cls, env, else_e))
+            if (!semantic_check_expr(ct, cls, env, else_e, cp))
                 ok = false;
 
             if (!ok) {
@@ -379,9 +380,9 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
 
             bool ok = true;
 
-            if (!semantic_check_expr(ct, cls, env, cond))
+            if (!semantic_check_expr(ct, cls, env, cond, cp))
                 ok = false;
-            if (!semantic_check_expr(ct, cls, env, body))
+            if (!semantic_check_expr(ct, cls, env, body, cp))
                 ok = false;
 
             if (!ok) {
@@ -407,7 +408,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
 
             for (; el; el = el->next) {
                 last = el->node;
-                if (!semantic_check_expr(ct, cls, env, last))
+                if (!semantic_check_expr(ct, cls, env, last, cp))
                     ok = false;
             }
 
@@ -432,6 +433,8 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
 
             /* new SELF_TYPE разрешён */
             set_expr_type(expr, type);
+            expr->classref_index = class_table_find(ct, expr->static_type)->class_cp_index;
+            expr->methodref_index = 7;
             return true;
         }
 
@@ -464,7 +467,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
 
                 /* Проверяем инициализацию, если есть */
                 if (b->init) {
-                    if (!semantic_check_expr(ct, cls, env, b->init)) {
+                    if (!semantic_check_expr(ct, cls, env, b->init, cp)) {
                         ok = false;
                     } else if (!is_subtype(ct, b->init->static_type, type, cls)) {
                         sem_error(expr,
@@ -489,7 +492,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             }
 
             /* Семантика тела let */
-            if (!semantic_check_expr(ct, cls, env, body))
+            if (!semantic_check_expr(ct, cls, env, body, cp))
                 ok = false;
 
             set_expr_type(expr, body->static_type);
@@ -511,7 +514,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             if (!expr->dispatch.caller) {
                 recv_type = cls->name;
             } else {
-                if (!semantic_check_expr(ct, cls, env, expr->dispatch.caller)) {
+                if (!semantic_check_expr(ct, cls, env, expr->dispatch.caller, cp)) {
                     set_expr_type(expr, "Object");
                     return false;
                 }
@@ -533,7 +536,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             int i = 0;
             ExprList *al = args;
             for (; al && i < m->param_count; al = al->next, i++) {
-                if (!semantic_check_expr(ct, cls, env, al->node))
+                if (!semantic_check_expr(ct, cls, env, al->node, cp))
                     ok = false;
                 else if (!is_subtype(ct, al->node->static_type, m->param_types[i], cls)) {
                     sem_error(expr,
@@ -585,7 +588,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
                 return false;
             }
 
-            if (!semantic_check_expr(ct, cls, env, caller)) {
+            if (!semantic_check_expr(ct, cls, env, caller, cp)) {
                 set_expr_type(expr, "Object");
                 return false;
             }
@@ -615,7 +618,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             int i = 0;
             ExprList *al = args;
             for (; al && i < m->param_count; al = al->next, i++) {
-                if (!semantic_check_expr(ct, cls, env, al->node))
+                if (!semantic_check_expr(ct, cls, env, al->node, cp))
                     ok = false;
                 else if (!is_subtype(ct, al->node->static_type, m->param_types[i], cls)) {
                     sem_error(expr,
@@ -653,7 +656,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             bool ok = true;
 
             /* 1. Проверяем выражение */
-            if (!semantic_check_expr(ct, cls, env, e)) {
+            if (!semantic_check_expr(ct, cls, env, e, cp)) {
                 set_expr_type(expr, "Object");
                 return false;
             }
@@ -716,7 +719,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
                     cn->var_binding = object_env_lookup(env, cn->name);
                 }
 
-                if (!semantic_check_expr(ct, cls, env, cn->expr)) {
+                if (!semantic_check_expr(ct, cls, env, cn->expr, cp)) {
                     ok = false;
                 } else {
                     if (!result_type) {
