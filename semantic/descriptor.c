@@ -21,6 +21,7 @@ static char *rename_builtin(char *s) {
     if (strcmp(s, "IO") == 0)   return strdup_safe("Lcool/runtime/IO;");
     if (strcmp(s, "Array") == 0)   return strdup_safe("Lcool/runtime/Array;");
     if (strcmp(s, "IntArray") == 0)   return strdup_safe("Lcool/runtime/IntArray;");
+    if (strcmp(s, "StringArray") == 0)   return strdup_safe("Lcool/runtime/StringArray;");
     return s;
 }
 
@@ -53,6 +54,7 @@ char *cool_type_to_descriptor(const char *type, const char *class_name) {
     if (strcmp(type, "IO") == 0)   return strdup_safe("Lcool/runtime/IO;");
     if (strcmp(type, "Array") == 0)   return strdup_safe("Lcool/runtime/Array;");
     if (strcmp(type, "IntArray") == 0)   return strdup_safe("Lcool/runtime/IntArray;");
+    if (strcmp(type, "StringArray") == 0)   return strdup_safe("Lcool/runtime/StringArray;");
     if (strcmp(type, "SELF_TYPE") == 0) {
         char *self = malloc(strlen(class_name) + 3);
         sprintf(self, "L%s;", class_name);

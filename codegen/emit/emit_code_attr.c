@@ -39,9 +39,6 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, ClassInf
 
     uint32_t code_length = bc.size;
 
-    fprintf(stderr,
-    "CODE: max_stack=%d max_locals=%d code_length=%u\n",
-    1, 1 + m->param_count, code_length);
 
 
     /*
@@ -68,7 +65,6 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, ClassInf
 
     /* code[] */
     fwrite(bc.data, 1, bc.size, out);
-    fprintf(stderr, "WROTE %u CODE BYTES\n", code_length);
 
     /* exception_table_length */
     write_u2(out, 0);

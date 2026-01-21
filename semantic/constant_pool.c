@@ -23,6 +23,7 @@ static char *rename_builtin(char *s) {
     if (strcmp(s, "IO") == 0)   return strdup_safe("cool/runtime/IO");
     if (strcmp(s, "Array") == 0)   return strdup_safe("cool/runtime/Array");
     if (strcmp(s, "IntArray") == 0)   return strdup_safe("cool/runtime/IntArray");
+    if (strcmp(s, "StringArray") == 0)   return strdup_safe("cool/runtime/StringArray");
     return s;
 }
 

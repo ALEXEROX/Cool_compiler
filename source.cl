@@ -21,7 +21,7 @@ class Animal inherits IO {
         };
     };
 	
-	speak() : String { out_string("Hell! "); 
+	speak() : String { out_string("Hello! "); 
 	"o";};
 	
 	get_age() : Int {age;};
@@ -149,9 +149,9 @@ class Main inherits IO {
             out_string("Welcome to the Cool Zoo!\n\n");
             zoo.show_all();
 				
-			let arr : IntArray <- new IntArray, elem : Int in{
-				elem <- arr.append(15);
-				out_int(arr.get(0));
+			let arr : StringArray <- new StringArray, elem : String in{
+				elem <- arr.append("Hello");
+				out_string(arr.get(0));
 			};
 			
 			0;

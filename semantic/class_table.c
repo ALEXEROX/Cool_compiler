@@ -201,7 +201,40 @@ void class_table_init(ClassTable *ct) {
         add_builtin_method(intarr_info, "append", fl, "Int");
     }
 
+    ClassNode *strarr_node = make_builtin_array_node("StringArray");
+    class_table_add_class(ct, strarr_node);
+    ClassInfo *strarr_info = class_table_find(ct, "StringArray");
+    {
+        add_builtin_method(strarr_info, "length", NULL, "Int");
+    }
 
+    {
+        FormalNode *f = make_formal("i", "Int");
+        FormalList *fl = malloc(sizeof(FormalList));
+        fl->node = f;
+        fl->next = NULL;
+        add_builtin_method(strarr_info, "get", fl, "String");
+    }
+
+    {
+        FormalNode *f1 = make_formal("i", "Int");
+        FormalNode *f2 = make_formal("val", "String");
+        FormalList *fl1 = malloc(sizeof(FormalList));
+        FormalList *fl2 = malloc(sizeof(FormalList));
+        fl1->node = f1;
+        fl1->next = fl2;
+        fl2->node = f2;
+        fl2->next = NULL;
+        add_builtin_method(strarr_info, "set", fl1, "String");
+    }
+
+    {
+        FormalNode *f = make_formal("val", "String");
+        FormalList *fl = malloc(sizeof(FormalList));
+        fl->node = f;
+        fl->next = NULL;
+        add_builtin_method(strarr_info, "append", fl, "String");
+    }
 }
 
 static void free_attr_list(AttrInfo *a) {

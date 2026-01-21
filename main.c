@@ -31,6 +31,10 @@ int main(int argc, char *argv[])
     }
 
     yyparse();
+    if (!program) {
+        printf("Sintacsis error!");
+        return 0;
+    }
     save_ast_dot(program);
     system("C:\\\"Program Files\"\\Graphviz\\bin\\dot.exe Dot\\cool_dot.dot -Tsvg > dot.svg");
     ClassTable *ct = semantic_program(program);
@@ -46,7 +50,7 @@ int main(int argc, char *argv[])
     for (ClassInfo *c = ct->head; c; c = c->next) {
         if (strcmp(c->name, "Int") != 0 && strcmp(c->name, "Bool") != 0 && strcmp(c->name, "String") != 0 &&
             strcmp(c->name, "IO") != 0 && strcmp(c->name, "Object") != 0 && strcmp(c->name, "Array") != 0
-            && strcmp(c->name, "IntArray") != 0){
+            && strcmp(c->name, "IntArray") != 0 && strcmp(c->name, "StringArray") != 0){
             snprintf(name, sizeof(name), "%s.class",c->name);
             FILE *f = fopen(name, "wb");
             emit_class_header(f, c,program->constant_table);
