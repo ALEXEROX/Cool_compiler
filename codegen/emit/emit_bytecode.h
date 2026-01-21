@@ -26,7 +26,7 @@ typedef struct {
 
 
 /* buffer */
-void bc_init(BytecodeBuffer *bc);
+void bc_init(BytecodeBuffer *bc, int param_count);
 void bc_free(BytecodeBuffer *bc);
 void bc_emit_u1(BytecodeBuffer *bc, uint8_t v);
 void bc_emit_u2(BytecodeBuffer *bc, uint16_t v);

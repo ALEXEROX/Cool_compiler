@@ -103,14 +103,37 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, ClassInfo *cls, ConstantTable* c
     case EXPR_BINOP: {
     // сначала вычисляем левый и правый операнды
     emit_expr(bc, e->binop.left, cls, ct);
-    emit_expr(bc, e->binop.right, cls, ct);
+    if (e->binop.op != OP_AND)
+        emit_expr(bc, e->binop.right, cls, ct);
 
     switch (e->binop.op) {
         case OP_PLUS:  emit_iadd(bc); break;
         case OP_MINUS: emit_isub(bc); break;
         case OP_MUL:   emit_imul(bc); break;
         case OP_DIV:   emit_idiv(bc); break;
-        case OP_AND:   bc_emit_u1(bc, 0x7E); break; // iand
+        case OP_AND: {
+            // вычисляем левый операнд
+            emit_expr(bc, e->binop.left, cls, ct);
+            // stack: ..., a
+
+            int j_false = emit_ifeq(bc);
+            // if a == 0 -> goto false
+
+            // a == true → вычисляем правый
+            emit_expr(bc, e->binop.right, cls, ct);
+            // stack: ..., b
+
+            int j_end = emit_goto(bc);
+
+            // false branch
+            int false_pos = bc->size;
+            patch_jump(bc, j_false, false_pos);
+            emit_iconst(bc, 0);
+
+            // end
+            patch_jump(bc, j_end, bc->size);
+            break;
+        }
         case OP_OR:    bc_emit_u1(bc, 0x80); break; // ior
 
         case OP_LT: {
@@ -232,7 +255,7 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, ClassInfo *cls, ConstantTable* c
 
     /* ---------- dispatch ---------- */
 
-    case EXPR_DISPATCH: {
+    case EXPR_DISPATCH:{
             /* receiver */
             if (e->dispatch.caller) {
                 emit_expr(bc, e->dispatch.caller, cls, ct);

@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 
     yyparse();
     if (!program) {
-        printf("Sintacsis error!");
-        return 0;
+        printf("Syntax error!");
+        return 1;
     }
     save_ast_dot(program);
     system("C:\\\"Program Files\"\\Graphviz\\bin\\dot.exe Dot\\cool_dot.dot -Tsvg > dot.svg");

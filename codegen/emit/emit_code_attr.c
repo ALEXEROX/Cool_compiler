@@ -18,9 +18,10 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, ClassInf
     /* attribute_name_index -> "Code" */
     write_u2(out, (uint16_t)code_utf8_index);
 
+
     /* ---- Bytecode ---- */
     BytecodeBuffer bc;
-    bc_init(&bc);
+    bc_init(&bc, m->param_count);
 
     /* Генерация тела метода */
     if (m->ast && m->ast->kind == FEATURE_METHOD && m->ast->method.body) {

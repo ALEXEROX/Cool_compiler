@@ -13,11 +13,11 @@ static void bc_ensure(BytecodeBuffer *bc, int n) {
     }
 }
 
-void bc_init(BytecodeBuffer *bc) {
+void bc_init(BytecodeBuffer *bc, int param_count) {
     bc->data = NULL;
     bc->size = 0;
     bc->capacity = 0;
-    bc->locals_count = 1;
+    bc->locals_count = 1 + param_count;
     bc->special_locals = 16;
 }
 
