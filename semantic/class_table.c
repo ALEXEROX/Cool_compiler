@@ -70,10 +70,10 @@ static ClassNode *make_builtin_string_node(void) {
     return c;
 }
 
-static ClassNode *make_builtin_array_node(void) {
+static ClassNode *make_builtin_array_node(const char* name) {
     ClassNode *c = calloc(1, sizeof(ClassNode));
     c->id = 5;
-    c->name = strdup_safe("Array");
+    c->name = strdup_safe(name);
     c->parent = strdup_safe("Object");
     return c;
 }
@@ -106,7 +106,7 @@ void class_table_init(ClassTable *ct) {
         FormalList *fl = malloc(sizeof(FormalList));
         fl->node = f;
         fl->next = NULL;
-        add_builtin_method(io_info, "out_string", fl, "Object");
+        add_builtin_method(io_info, "out_string", fl, "IO");
     }
 
     {
@@ -114,11 +114,11 @@ void class_table_init(ClassTable *ct) {
         FormalList *fl = malloc(sizeof(FormalList));
         fl->node = f;
         fl->next = NULL;
-        add_builtin_method(io_info, "out_int", fl, "Object");
+        add_builtin_method(io_info, "out_int", fl, "IO");
     }
 
-    add_builtin_method(io_info, "in_string", NULL, "Object");
-    add_builtin_method(io_info, "in_int", NULL, "Object");
+    add_builtin_method(io_info, "in_string", NULL, "String");
+    add_builtin_method(io_info, "in_int", NULL, "Int");
 
 
     ClassNode *int_node = make_builtin_int_node();
@@ -130,7 +130,7 @@ void class_table_init(ClassTable *ct) {
     ClassNode *string_node = make_builtin_string_node();
     class_table_add_class(ct, string_node);
 
-    ClassNode *arr_node = make_builtin_array_node();
+    ClassNode *arr_node = make_builtin_array_node("Array");
     class_table_add_class(ct, arr_node);
 
     ClassInfo *arr_info = class_table_find(ct, "Array");
@@ -164,6 +164,41 @@ void class_table_init(ClassTable *ct) {
         fl->node = f;
         fl->next = NULL;
         add_builtin_method(arr_info, "append", fl, "Object");
+    }
+
+    ClassNode *intarr_node = make_builtin_array_node("IntArray");
+    class_table_add_class(ct, intarr_node);
+    ClassInfo *intarr_info = class_table_find(ct, "IntArray");
+    {
+        add_builtin_method(intarr_info, "length", NULL, "Int");
+    }
+
+    {
+        FormalNode *f = make_formal("i", "Int");
+        FormalList *fl = malloc(sizeof(FormalList));
+        fl->node = f;
+        fl->next = NULL;
+        add_builtin_method(intarr_info, "get", fl, "Int");
+    }
+
+    {
+        FormalNode *f1 = make_formal("i", "Int");
+        FormalNode *f2 = make_formal("val", "Int");
+        FormalList *fl1 = malloc(sizeof(FormalList));
+        FormalList *fl2 = malloc(sizeof(FormalList));
+        fl1->node = f1;
+        fl1->next = fl2;
+        fl2->node = f2;
+        fl2->next = NULL;
+        add_builtin_method(intarr_info, "set", fl1, "Int");
+    }
+
+    {
+        FormalNode *f = make_formal("val", "Int");
+        FormalList *fl = malloc(sizeof(FormalList));
+        fl->node = f;
+        fl->next = NULL;
+        add_builtin_method(intarr_info, "append", fl, "Int");
     }
 
 

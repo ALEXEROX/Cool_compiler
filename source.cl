@@ -6,11 +6,12 @@ class Animal inherits IO {
         {
             name <- n;
             age <- a;
+			age <- in_int();
             self;
         };
     };
 
-    describe() : Object {
+    describe() : IO {
         {
             out_string("Animal: ");
             out_string(name);
@@ -20,7 +21,8 @@ class Animal inherits IO {
         };
     };
 	
-	speak() : String { "Hell! "; };
+	speak() : String { out_string("Hell! "); 
+	"o";};
 	
 	get_age() : Int {age;};
 };
@@ -38,7 +40,13 @@ class Elephant inherits Animal {
 };
 
 class Parrot inherits Animal {
-    phrase : String <- "Hello!";
+    phrase : String;
+	
+	init(n : String, a : Int) : SELF_TYPE {
+	self@Animal.init(n,a);
+	phrase <- "Hello!";
+	self;
+	};
 
     set_phrase(p : String) : Parrot {
         {
@@ -57,7 +65,12 @@ class Parrot inherits Animal {
 class List inherits Object {
     head_elem : Animal;
     tail_list : List;
-    empty : Bool <- true;
+    empty : Bool;
+	
+	init() : SELF_TYPE {
+	empty <- true;
+	self;
+	};
 
     is_empty() : Bool { empty; };
 
@@ -89,7 +102,13 @@ class List inherits Object {
 
 -- The Zoo class manages a list of animals
 class Zoo inherits IO {
-    animals : List <- new List;
+    animals : List;
+	
+	init() : SELF_TYPE {
+	animals <- new List;
+	animals.init();
+	self;
+	};
 
     add(a : Animal) : Zoo {
         {
@@ -98,7 +117,7 @@ class Zoo inherits IO {
         };
     };
 
-    show_all() : Object {
+    show_all() : Zoo {
         let current : List <- animals in
         while not current.is_empty() loop {
             let a : Animal <- current.head() in
@@ -110,6 +129,7 @@ class Zoo inherits IO {
             };
             current <- current.tail();
         } pool;
+		self;
     };
 	
 	get_zoo() : List {animals;};
@@ -117,52 +137,24 @@ class Zoo inherits IO {
 
 -- Main program entry point
 class Main inherits IO {
-    zoo : Zoo <- new Zoo;
+    zoo : Zoo;
 
-    main() : Object {
+    main() : Int {
         {
+			zoo <- (new Zoo).init();
             zoo.add((new Lion).init("Simba", 5));
             zoo.add((new Elephant).init("Dumbo", 10));
             zoo.add((new Parrot).init("Kesha", 2).set_phrase("Polly wants a cracker!"));
 
             out_string("Welcome to the Cool Zoo!\n\n");
             zoo.show_all();
+				
+			let arr : IntArray <- new IntArray, elem : Int in{
+				elem <- arr.append(15);
+				out_int(arr.get(0));
+			};
 			
-			let swapped : Bool <- true in
-            let current : List <- zoo.get_zoo() in
-            {
-                while swapped loop
-                    {
-                        swapped <- false;
-                        current <- zoo.get_zoo();
-                        while not current.is_empty() loop
-                            {
-                                let next : List <- current.tail() in
-                                if not next.is_empty() then
-                                    {
-                                        let a1 : Animal <- current.head() in
-                                        let a2 : Animal <- next.head() in
-                                        if a1.get_age() < a2.get_age() then
-                                            {
-                                                current.set_head(a2);
-                                                next.set_head(a1);
-                                                swapped <- true;
-                                            }
-                                        else
-                                            { false; }
-                                        fi;
-                                    }
-                                else
-                                    { false; }
-                                fi;
-                                current <- current.tail();
-                            }
-                        pool;
-                    }
-                pool;
-                out_string("After sorting by age:\n");
-                zoo.show_all();
-            };
+			0;
         };
     };
 };

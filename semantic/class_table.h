@@ -66,6 +66,7 @@ typedef struct ClassInfo {
 
     ClassInfo *next; /* для списка в ClassTable */
     int class_cp_index;
+    int init_cp_index;
     int object_size;
     MethodInfo **vtable;
     int vtable_size;

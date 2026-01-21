@@ -19,7 +19,7 @@ void emit_class_header(FILE *out, ClassInfo *cls, ConstantTable *cp) {
     /* magic + version */
     write_u4(out, 0xCAFEBABE);
     write_u2(out, 0);    // minor
-    write_u2(out, 52);   // major
+    write_u2(out, 49);   // major
 
     /* constant pool */
     emit_constant_pool(out, cp);

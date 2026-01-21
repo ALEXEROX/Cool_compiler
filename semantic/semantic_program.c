@@ -71,6 +71,8 @@ void *semantic_program(ProgramNode *p)
 
     for (ClassInfo *c = ct->head; c; c = c->next) {
         c->class_cp_index = const_add_class(cp, c->name);
+        int id = const_add_name_and_type(cp,"<init>","()V");
+        c->init_cp_index = const_add_methodref(cp,c->class_cp_index,id);
 
         // Добавляем поля
         for (AttrInfo *a = c->attrs; a; a = a->next) {
@@ -85,7 +87,7 @@ void *semantic_program(ProgramNode *p)
             if (m->methodref_index != 0) {
                 m->name_utf8_index = const_add_utf8(p->constant_table, m->name);
                 ClassInfo *method_owner = find_method_owner(c, m->ast->name);
-                m->descriptor_utf8_index = const_add_utf8(p->constant_table, make_method_descriptor(m->ast->method.formals, m->ast->method_info->return_type,method_owner->name));
+                m->descriptor_utf8_index = const_add_utf8(p->constant_table, make_method_descriptor(m->ast->method.formals, m->ast->method_info->return_type,c->name));
             }
         }
     }
@@ -127,8 +129,8 @@ void *semantic_program(ProgramNode *p)
            Если хочешь строго — оставь эту проверку, иначе убери. */
     }
 
-    const_table_print(p->constant_table, stdout);
-    class_table_print(ct, stdout);
+    // const_table_print(p->constant_table, stdout);
+    // class_table_print(ct, stdout);
 
     /* Если дошли сюда — семантика успешна. */
     return ct;

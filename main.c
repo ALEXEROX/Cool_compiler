@@ -14,15 +14,15 @@ int main(int argc, char *argv[])
 {
     setlocale(LC_ALL, "Russian");
 
-    char filename[255] = {'s','o','u','r','c','e','.','c','l','\0'};
+    char filename[255];
 
     if (argc == 2) {
         strcpy(filename, argv[1]);
     }
-    // else {
-    //     printf("Enter file name\n");
-    //     scanf("%s", &filename);
-    // }
+    else {
+        printf("Enter file name\n");
+        scanf("%s", &filename);
+    }
 
     yyin = fopen(filename, "r");
     if (!yyin) {
@@ -44,11 +44,17 @@ int main(int argc, char *argv[])
 
     char name[255];
     for (ClassInfo *c = ct->head; c; c = c->next) {
-        snprintf(name, sizeof(name), "%s.class",c->name);
-        FILE *f = fopen(name, "wb");
-        emit_class_header(f, c,program->constant_table);
-        fclose(f);
+        if (strcmp(c->name, "Int") != 0 && strcmp(c->name, "Bool") != 0 && strcmp(c->name, "String") != 0 &&
+            strcmp(c->name, "IO") != 0 && strcmp(c->name, "Object") != 0 && strcmp(c->name, "Array") != 0
+            && strcmp(c->name, "IntArray") != 0){
+            snprintf(name, sizeof(name), "%s.class",c->name);
+            FILE *f = fopen(name, "wb");
+            emit_class_header(f, c,program->constant_table);
+            fclose(f);
+        }
     }
+
+    system("java -Xverify:all -cp . CoolLauncher");
 
 
 

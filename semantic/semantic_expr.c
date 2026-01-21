@@ -434,7 +434,7 @@ bool semantic_check_expr(ClassTable *ct, ClassInfo *cls, ObjectEnv *env, ExprNod
             /* new SELF_TYPE разрешён */
             set_expr_type(expr, type);
             expr->classref_index = class_table_find(ct, expr->static_type)->class_cp_index;
-            expr->methodref_index = 7;
+            expr->methodref_index = cls->parent_info->init_cp_index;
             return true;
         }
 

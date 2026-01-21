@@ -59,7 +59,7 @@ void emit_methods(FILE *out, ClassInfo *cls, ConstantTable* ct) {
         /* attributes_count = 1 (Code) */
         write_u2(out, 1);
 
-        emit_code_attribute(out, m, CODE_ATTR_NAME_INDEX, cls->class_cp_index, ct);
+        emit_code_attribute(out, m, CODE_ATTR_NAME_INDEX, cls, ct);
     }
 }
 

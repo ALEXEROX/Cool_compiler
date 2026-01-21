@@ -8,6 +8,6 @@
 /*
  * Генерация атрибута Code для метода
  */
-void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, int class_index, ConstantTable* ct);
+void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, ClassInfo *cls, ConstantTable* ct);
 
 void emit_init_code_attribute(FILE *out, ClassInfo *cls);

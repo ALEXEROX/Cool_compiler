@@ -16,14 +16,16 @@ public class Array extends Object{
         return elems.get(i);
     }
 
-    public void set(int i, Object val) {
+    public Object set(int i, Object val) {
         if(i < 0 || i >= elems.size()) {
             abort();
         }
         elems.set(i, val);
+        return val;
     }
 
-    public void append(Object val) {
+    public Object append(Object val) {
         elems.add(val);
+        return val;
     }
 }

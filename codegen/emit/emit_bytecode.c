@@ -17,7 +17,41 @@ void bc_init(BytecodeBuffer *bc) {
     bc->data = NULL;
     bc->size = 0;
     bc->capacity = 0;
-    bc->locals_count = 0;
+    bc->locals_count = 1;
+    bc->special_locals = 16;
+}
+
+int add_local(BytecodeBuffer *bc, const char *name, const char *type) {
+    if (!bc) return -1;
+
+    if (bc->locals_count >= 16) {
+        fprintf(stderr, "Error: exceeded max locals (16)\n");
+        return -1;
+    }
+
+    int index = bc->locals_count;
+
+    bc->locals[index].id = index;
+    strncpy(bc->locals[index].name, name, sizeof(bc->locals[index].name) - 1);
+    bc->locals[index].name[sizeof(bc->locals[index].name) - 1] = '\0';
+    strncpy(bc->locals[index].type, type, sizeof(bc->locals[index].type) - 1);
+    bc->locals[index].type[sizeof(bc->locals[index].type) - 1] = '\0';
+
+    bc->locals_count++;
+
+    return index;
+}
+
+int find_local(BytecodeBuffer *bc, const char *name) {
+    if (!bc || !name) return -1;
+
+    for (int i = 0; i < bc->locals_count; i++) {
+        if (strcmp(bc->locals[i].name, name) == 0) {
+            return i;
+        }
+    }
+
+    return -1; // не найдено
 }
 
 void bc_free(BytecodeBuffer *bc) {

@@ -11,7 +11,7 @@
 #include "emit_bytecode.h"
 #include "emit_expr.h"
 
-void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, int class_index, ConstantTable* ct)
+void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, ClassInfo *cls, ConstantTable* ct)
 {
     if (!out || !m) return;
 
@@ -24,14 +24,14 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, int clas
 
     /* Генерация тела метода */
     if (m->ast && m->ast->kind == FEATURE_METHOD && m->ast->method.body) {
-        emit_expr(&bc, m->ast->method.body, class_index, ct);
+        emit_expr(&bc, m->ast->method.body, cls, ct);
     }
 
 
     /* Добавляем правильный return */
     if (strcmp(m->return_type, "Int") == 0 || strcmp(m->return_type, "Bool") == 0) {
         bc_emit_u1(&bc, 0xAC); // ireturn
-    } else if (m->return_type && strcmp(m->return_type, "SELF_TYPE") != 0) {
+    } else if (m->return_type) {
         bc_emit_u1(&bc, 0xB0); // areturn
     } else {
         bc_emit_u1(&bc, 0xB1); // return (void)
@@ -61,7 +61,7 @@ void emit_code_attribute(FILE *out, MethodInfo *m, int code_utf8_index, int clas
     write_u2(out, 32);
 
     /* max_locals: this + параметры метода */
-    write_u2(out, 1 + m->param_count);
+    write_u2(out, 32);
 
     /* code_length */
     write_u4(out, code_length);
@@ -107,7 +107,7 @@ void emit_init_code_attribute(FILE *out, ClassInfo *cls)
         /* invokespecial */
         code[pc++] = 0xB7;
         code[pc++] = (cls->parent_info->class_cp_index >> 8) & 0xFF;
-        code[pc++] = 7 & 0xFF;
+        code[pc++] = (cls->parent_info->init_cp_index) & 0xFF;
     }
 
     /* return */

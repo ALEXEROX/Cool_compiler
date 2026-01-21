@@ -14,6 +14,16 @@ static char *strdup_safe(const char *s) {
     return r;
 }
 
+static char *rename_builtin(char *s) {
+    if (!s) return NULL;
+    if (strcmp(s, "String") == 0)   return strdup_safe("Ljava/lang/String;");
+    if (strcmp(s, "Object") == 0)   return strdup_safe("Lcool/runtime/Object;");
+    if (strcmp(s, "IO") == 0)   return strdup_safe("Lcool/runtime/IO;");
+    if (strcmp(s, "Array") == 0)   return strdup_safe("Lcool/runtime/Array;");
+    if (strcmp(s, "IntArray") == 0)   return strdup_safe("Lcool/runtime/IntArray;");
+    return s;
+}
+
 // Находит класс, где определён метод (т.е. первый метод с таким именем по цепочке наследования)
 ClassInfo *find_method_owner(ClassInfo *cls, const char *method_name) {
     ClassInfo *cur = cls;
@@ -39,7 +49,10 @@ char *cool_type_to_descriptor(const char *type, const char *class_name) {
     if (strcmp(type, "Int") == 0)      return strdup_safe("I");
     if (strcmp(type, "Bool") == 0)     return strdup_safe("Z");
     if (strcmp(type, "String") == 0)   return strdup_safe("Ljava/lang/String;");
-    if (strcmp(type, "Object") == 0)   return strdup_safe("Ljava/lang/Object;");
+    if (strcmp(type, "Object") == 0)   return strdup_safe("Lcool/runtime/Object;");
+    if (strcmp(type, "IO") == 0)   return strdup_safe("Lcool/runtime/IO;");
+    if (strcmp(type, "Array") == 0)   return strdup_safe("Lcool/runtime/Array;");
+    if (strcmp(type, "IntArray") == 0)   return strdup_safe("Lcool/runtime/IntArray;");
     if (strcmp(type, "SELF_TYPE") == 0) {
         char *self = malloc(strlen(class_name) + 3);
         sprintf(self, "L%s;", class_name);
@@ -61,7 +74,11 @@ char *cool_type_to_descriptor(const char *type, const char *class_name) {
  *  Дескриптор метода
  * ============================================================ */
 
-char *make_method_descriptor(FormalList *formals, const char *return_type, const char *class_name) {
+char *make_method_descriptor(FormalList *formals, char *return_type, char *class_name) {
+
+    return_type = rename_builtin(return_type);
+    class_name = rename_builtin(class_name);
+
     size_t size = 128;
     char *buf = malloc(size);
     size_t pos = 0;
@@ -104,18 +121,19 @@ char *make_method_descriptor(FormalList *formals, const char *return_type, const
  *  Обёртки для добавления в ConstantPool
  * ============================================================ */
 
-int cp_add_class_from_cool(ConstantTable *cp, const char *cool_class_name) {
+int cp_add_class_from_cool(ConstantTable *cp, char *cool_class_name) {
     if (!cp || !cool_class_name) return 0;
     return const_add_class(cp, cool_class_name);
 }
 
 int cp_add_fieldref_from_cool(ConstantTable *cp,
-                              const char *class_name,
+                              char *class_name,
                               const char *field_name,
-                              const char *cool_type)
+                              char *cool_type)
 {
     if (!cp || !class_name || !field_name) return 0;
 
+    cool_type = rename_builtin(cool_type);
     int cls_idx = cp_add_class_from_cool(cp, class_name);
 
     char *desc = cool_type_to_descriptor(cool_type ? cool_type : "Object",class_name);
@@ -125,9 +143,11 @@ int cp_add_fieldref_from_cool(ConstantTable *cp,
     return const_add_fieldref(cp, cls_idx, nat);
 }
 
-int cp_add_methodref_from_cool(ConstantTable *cp, const char *class_name, const char *method_name, FormalList *formals, const char *return_type)
+int cp_add_methodref_from_cool(ConstantTable *cp, char *class_name, const char *method_name, FormalList *formals, char *return_type)
 {
     if (!cp || !class_name || !method_name) return 0;
+
+    return_type = rename_builtin(return_type);
 
     int cls_idx = cp_add_class_from_cool(cp, class_name);
 
@@ -147,17 +167,17 @@ int cp_add_methodref_from_feature(ConstantTable *cp, ClassInfo cl, FeatureNode *
     if (!cp || !cl.name || !method_feature) return 0;
     if (method_feature->kind != FEATURE_METHOD) return 0;
 
-    ClassInfo *method_owner = find_method_owner(&cl, method_feature->name);
-
-    return cp_add_methodref_from_cool(cp, method_owner->name, method_feature->name, method_feature->method.formals, method_feature->method.return_type);
+    return cp_add_methodref_from_cool(cp, cl.name, method_feature->name, method_feature->method.formals, method_feature->method.return_type);
 }
 
 int cp_add_fieldref_from_feature(ConstantTable *cp,
-                                 const char *class_name,
+                                 char *class_name,
                                  FeatureNode *attr_feature)
 {
     if (!cp || !class_name || !attr_feature) return 0;
     if (attr_feature->kind != FEATURE_ATTR) return 0;
+
+    class_name = rename_builtin(class_name);
 
     return cp_add_fieldref_from_cool(
         cp,

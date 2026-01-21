@@ -9,11 +9,21 @@
  * Буфер байткода
  * =============================== */
 typedef struct {
+    int id;
+    char name[32];
+    char type[32];
+} local;
+
+typedef struct {
     uint8_t *data;
     int size;
     int capacity;
     int locals_count;
+    int special_locals;
+    local locals[16];
 } BytecodeBuffer;
+
+
 
 /* buffer */
 void bc_init(BytecodeBuffer *bc);
@@ -22,6 +32,8 @@ void bc_emit_u1(BytecodeBuffer *bc, uint8_t v);
 void bc_emit_u2(BytecodeBuffer *bc, uint16_t v);
 void bc_emit_u4(BytecodeBuffer *bc, uint32_t v);
 
+int add_local(BytecodeBuffer *bc, const char *name, const char *type);
+int find_local(BytecodeBuffer *bc, const char *name);
 /* ===============================
  * JVM instructions
  * =============================== */

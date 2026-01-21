@@ -9,7 +9,7 @@
 #include "../../semantic/descriptor.h"
 
 static bool is_int_type(const char *t) {
-    return t && strcmp(t, "Int") == 0;
+    return t && (strcmp(t, "Int") == 0 || strcmp(t, "Bool") == 0);
 }
 
 /* ============================================================
@@ -32,7 +32,7 @@ static void emit_store(BytecodeBuffer *bc, ExprNode *e) {
 /* ============================================================
  * emit_expr
  * ============================================================ */
-void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* ct) {
+void emit_expr(BytecodeBuffer *bc, ExprNode *e, ClassInfo *cls, ConstantTable* ct) {
     assert(e);
 
     switch (e->kind) {
@@ -65,6 +65,9 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
             }
             else {
                 // локал (let / arg / case)
+                if (find_local(bc,e->object.name) != -1) {
+                    e->local_index = find_local(bc,e->object.name);
+                }
                 emit_load(bc, e);
             }
             break;
@@ -73,7 +76,7 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
 
     case EXPR_ASSIGN:
             if (e->resolved_attr) {
-                emit_expr(bc, e->assign.expr, class_index, ct); // value
+                emit_expr(bc, e->assign.expr, cls, ct); // value
                 emit_aload_0(bc);                               // this
                 emit_swap(bc);                                  // this, value
                 emit_putfield(bc, e->resolved_attr->fieldref_index);
@@ -82,7 +85,12 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
                 emit_aload_0(bc);
                 emit_getfield(bc, e->resolved_attr->fieldref_index);
             } else {
-                emit_expr(bc, e->assign.expr, class_index, ct);
+                if (find_local(bc, e->assign.name) != -1)
+                    e->local_index = find_local(bc, e->assign.name);
+                else if (e->local_index < 1) {
+                    e->local_index = bc->special_locals++;
+                }
+                emit_expr(bc, e->assign.expr, cls, ct);
                 emit_store(bc, e);
                 emit_load(bc, e);
             }
@@ -94,8 +102,8 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
 
     case EXPR_BINOP: {
     // сначала вычисляем левый и правый операнды
-    emit_expr(bc, e->binop.left, class_index, ct);
-    emit_expr(bc, e->binop.right, class_index, ct);
+    emit_expr(bc, e->binop.left, cls, ct);
+    emit_expr(bc, e->binop.right, cls, ct);
 
     switch (e->binop.op) {
         case OP_PLUS:  emit_iadd(bc); break;
@@ -106,50 +114,72 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
         case OP_OR:    bc_emit_u1(bc, 0x80); break; // ior
 
         case OP_LT: {
-            // a < b
-            int false_label = emit_label_placeholder(bc);
-            int end_label = emit_label_placeholder(bc);
+            int j_false = bc->size;
             bc_emit_u1(bc, 0xA2); // if_icmpge
             bc_emit_u2(bc, 0);    // placeholder
-            emit_iconst(bc, 1);   // true
-            int goto_end = emit_goto_placeholder(bc);
-            emit_label(bc, false_label);
-            emit_iconst(bc, 0);   // false
-            emit_label(bc, end_label);
-            patch_label(bc, false_label, bc->size);
-            patch_label(bc, goto_end, bc->size);
+
+            // true branch
+            emit_iconst(bc, 1);
+
+            int j_end = emit_goto(bc);
+
+            // false branch
+            int false_pos = bc->size;
+            patch_jump(bc, j_false, false_pos);
+
+            emit_iconst(bc, 0);
+
+            int end_pos = bc->size;
+            patch_jump(bc, j_end, end_pos);
+
             break;
         }
 
         case OP_LE: {
-            // a <= b
-            int false_label = emit_label_placeholder(bc);
-            int end_label = emit_label_placeholder(bc);
+            // stack: ..., a, b
+
+            int j_false = bc->size;
             bc_emit_u1(bc, 0xA3); // if_icmpgt
-            bc_emit_u2(bc, 0);
-            emit_iconst(bc, 1); // true
-            int goto_end = emit_goto_placeholder(bc);
-            emit_label(bc, false_label);
-            emit_iconst(bc, 0); // false
-            emit_label(bc, end_label);
-            patch_label(bc, false_label, bc->size);
-            patch_label(bc, goto_end, bc->size);
+            bc_emit_u2(bc, 0);    // placeholder
+
+            // true
+            emit_iconst(bc, 1);
+
+            int j_end = emit_goto(bc);
+
+            // false
+            int false_pos = bc->size;
+            patch_jump(bc, j_false, false_pos);
+
+            emit_iconst(bc, 0);
+
+            int end_pos = bc->size;
+            patch_jump(bc, j_end, end_pos);
+
             break;
         }
 
         case OP_EQ: {
-            // a == b
-            int false_label = emit_label_placeholder(bc);
-            int end_label = emit_label_placeholder(bc);
+            // stack: ..., a, b
+
+            int j_false = bc->size;
             bc_emit_u1(bc, 0x9F); // if_icmpne
-            bc_emit_u2(bc, 0);
-            emit_iconst(bc, 1); // true
-            int goto_end = emit_goto_placeholder(bc);
-            emit_label(bc, false_label);
-            emit_iconst(bc, 0); // false
-            emit_label(bc, end_label);
-            patch_label(bc, false_label, bc->size);
-            patch_label(bc, goto_end, bc->size);
+            bc_emit_u2(bc, 0);    // placeholder
+
+            // true
+            emit_iconst(bc, 1);
+
+            int j_end = emit_goto(bc);
+
+            // false
+            int false_pos = bc->size;
+            patch_jump(bc, j_false, false_pos);
+
+            emit_iconst(bc, 0);
+
+            int end_pos = bc->size;
+            patch_jump(bc, j_end, end_pos);
+
             break;
         }
 
@@ -164,7 +194,7 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
     /* ---------- unary ops ---------- */
 
         case EXPR_UNOP: {
-        emit_expr(bc, e->unop.expr, class_index, ct);
+        emit_expr(bc, e->unop.expr, cls, ct);
 
         switch (e->unop.op) {
             case OP_NEG:
@@ -205,7 +235,10 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
     case EXPR_DISPATCH: {
             /* receiver */
             if (e->dispatch.caller) {
-                emit_expr(bc, e->dispatch.caller, class_index, ct);
+                emit_expr(bc, e->dispatch.caller, cls, ct);
+                if (strcmp(e->dispatch.caller->static_type, e->dispatch_class->name) != 0) {
+                    emit_checkcast(bc, e->dispatch_class->class_cp_index);
+                }
             } else {
                 /* implicit self */
                 bc_emit_u1(bc, 0x2A); // aload_0
@@ -213,21 +246,23 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
 
             /* arguments */
             for (ExprList *it = e->dispatch.args; it; it = it->next) {
-                emit_expr(bc, it->node, class_index, ct);
+                emit_expr(bc, it->node, cls, ct);
             }
 
             /* invokevirtual */
             bc_emit_u1(bc, 0xB6);
             bc_emit_u2(bc, e->resolved_method->methodref_index);
-
+            if (strcmp(e->resolved_method->return_type, "SELF_TYPE") == 0) {
+                emit_checkcast(bc, e->dispatch_class->class_cp_index);
+            }
             break;
         }
 
     case EXPR_STATIC_DISPATCH: {
-        emit_expr(bc, e->static_dispatch.caller, class_index, ct);
+        emit_expr(bc, e->static_dispatch.caller, cls, ct);
 
         for (ExprList *it = e->static_dispatch.args; it; it = it->next)
-            emit_expr(bc, it->node, class_index, ct);
+            emit_expr(bc, it->node, cls, ct);
 
         emit_invokespecial(bc, e->resolved_method->methodref_index);
         break;
@@ -236,9 +271,16 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
     /* ---------- new ---------- */
 
     case EXPR_NEW:
-        emit_new(bc, const_add_class(ct, e->static_type));
+        int cl_id = const_add_class(ct, e->static_type);
+        emit_new(bc, cl_id);
         emit_dup(bc);
-        emit_invokespecial(bc, e->methodref_index);
+        if (cls->parent_info) {
+            int id = const_add_name_and_type(ct,"<init>","()V");
+            emit_invokespecial(bc, const_add_methodref(ct,cl_id,id));
+        }
+        else
+            emit_invokespecial(bc, 7);
+        emit_checkcast(bc, cl_id);
         break;
 
     /* ---------- block ---------- */
@@ -246,31 +288,32 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
     case EXPR_BLOCK: {
         ExprList *it = e->block.exprs;
         while (it && it->next) {
-            emit_expr(bc, it->node, class_index, ct);
+            emit_expr(bc, it->node, cls, ct);
             emit_pop(bc);
             it = it->next;
         }
         if (it)
-            emit_expr(bc, it->node, class_index, ct);
+            emit_expr(bc, it->node, cls, ct);
         break;
     }
 
     case EXPR_IF: {
-        emit_expr(bc, e->if_expr.cond, class_index, ct);
+        emit_expr(bc, e->if_expr.cond, cls, ct);
         int j_else = emit_ifeq(bc);
-        emit_expr(bc, e->if_expr.then_branch, class_index, ct);
+        emit_expr(bc, e->if_expr.then_branch, cls, ct);
         int j_end = emit_goto(bc);
         patch_jump(bc, j_else, bc->size);
-        emit_expr(bc, e->if_expr.else_branch, class_index, ct);
+        emit_expr(bc, e->if_expr.else_branch, cls, ct);
         patch_jump(bc, j_end, bc->size);
         break;
     }
 
     case EXPR_WHILE: {
         int loop_start = bc->size;
-        emit_expr(bc, e->while_expr.cond, class_index, ct);
+        emit_expr(bc, e->while_expr.cond, cls, ct);
         int j_end = emit_ifeq(bc);
-        emit_expr(bc, e->while_expr.body, class_index, ct);
+        emit_expr(bc, e->while_expr.body, cls, ct);
+        emit_pop(bc);
         emit_goto(bc);
         patch_jump(bc, bc->size - 3, loop_start);
         patch_jump(bc, j_end, bc->size);
@@ -278,11 +321,12 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
         break;
     }
 
+
     case EXPR_CASE: {
         ExprNode *scrutinee = e->case_expr.expr;
 
         // Вычисляем выражение, по которому делаем case
-        emit_expr(bc, scrutinee, class_index, ct);
+        emit_expr(bc, scrutinee, cls, ct);
 
         // Сохраняем результат в временный локал
         int tmp_index = allocate_tmp_local(e);
@@ -297,7 +341,7 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
             // Загружаем скринтинированное значение
             emit_iload(bc, tmp_index);
 
-            emit_instanceof(bc, class_index);
+            emit_instanceof(bc, cls->class_cp_index);
 
             // Проверяем: если не тот тип — пропускаем ветку
             int next_label = emit_ifeq(bc);
@@ -307,7 +351,7 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
             emit_istore(bc, c->local_index);
 
             // Генерируем тело ветки
-            emit_expr(bc, c->expr, class_index, ct);
+            emit_expr(bc, c->expr, cls, ct);
 
             // Переход на конец case после выполнения ветки
             int goto_end = emit_goto(bc);
@@ -331,11 +375,11 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
             int count = 0;
             // Обрабатываем инициализации и выделяем слоты
             while (binding) {
-                int slot = bc->locals_count++;  // выделяем новый локал
-                binding->binding->local_index = slot;           // запоминаем индекс в let-узле
+                int slot = add_local(bc,binding->binding->name,binding->binding->type);  // выделяем новый локал
+                binding->binding->local_index = slot;// запоминаем индекс в let-узле
 
                 if (binding->binding->init) {
-                    emit_expr(bc, binding->binding->init, class_index, ct);
+                    emit_expr(bc, binding->binding->init, cls, ct);
                 } else {
                     // Default для примитивов
                     if (strcmp(binding->binding->type, "Int") == 0 ||
@@ -346,18 +390,20 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, int class_index, ConstantTable* 
                         }
                 }
 
-                emit_astore(bc, slot); // сохраняем в локал
+
+                if (strcmp(binding->binding->type, "Int") == 0 ||
+                    strcmp(binding->binding->type, "Bool") == 0) {
+                        emit_istore(bc, slot);}
+                else {
+                    emit_astore(bc, slot);
+                }
+                // сохраняем в локал
                 count = count + 1;
                 binding = binding->next;
             }
 
             // Генерим тело let
-            emit_expr(bc, e->let_expr.body, class_index, ct);
-
-            // После тела let локалы "освобождаются"
-
-            bc->locals_count -= count; // или по факту сколько выделили
-
+            emit_expr(bc, e->let_expr.body, cls, ct);
             break;
         }
 

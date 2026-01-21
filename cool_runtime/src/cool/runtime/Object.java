@@ -1,7 +1,8 @@
 package cool.runtime;
 
 public class Object {
-    public void abort() {
+    public Object abort() {
         System.exit(1);
+        return this;
     }
 }

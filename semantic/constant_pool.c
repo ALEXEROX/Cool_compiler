@@ -16,6 +16,16 @@ static char *strdup_safe(const char *s) {
     return r;
 }
 
+static char *rename_builtin(char *s) {
+    if (!s) return NULL;
+    if (strcmp(s, "String") == 0)   return strdup_safe("java/lang/String");
+    if (strcmp(s, "Object") == 0)   return strdup_safe("cool/runtime/Object");
+    if (strcmp(s, "IO") == 0)   return strdup_safe("cool/runtime/IO");
+    if (strcmp(s, "Array") == 0)   return strdup_safe("cool/runtime/Array");
+    if (strcmp(s, "IntArray") == 0)   return strdup_safe("cool/runtime/IntArray");
+    return s;
+}
+
 static int const_table_add_entry(ConstantTable *tbl, ConstantKind kind) {
     ConstantEntry *e = malloc(sizeof(ConstantEntry));
     memset(e, 0, sizeof(ConstantEntry));
@@ -59,6 +69,7 @@ static int const_find_utf8(ConstantTable *tbl, const char *s) {
 
 int const_add_utf8(ConstantTable *tbl, const char *s) {
     if (!s) return 0;
+    s = rename_builtin(s);
     int found = const_find_utf8(tbl, s);
     if (found) return found;
 

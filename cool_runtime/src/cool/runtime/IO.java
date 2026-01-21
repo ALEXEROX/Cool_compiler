@@ -16,7 +16,7 @@ public class IO extends Object{
     }
 
     public String in_string() {
-        return new String(scanner.nextLine());
+        return scanner.nextLine();
     }
 
     public int in_int() {
