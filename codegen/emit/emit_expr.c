@@ -103,7 +103,7 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, ClassInfo *cls, ConstantTable* c
     case EXPR_BINOP: {
     // сначала вычисляем левый и правый операнды
     emit_expr(bc, e->binop.left, cls, ct);
-    if (e->binop.op != OP_AND)
+    if (e->binop.op != OP_AND && e->binop.op != OP_OR)
         emit_expr(bc, e->binop.right, cls, ct);
 
     switch (e->binop.op) {
@@ -112,9 +112,6 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, ClassInfo *cls, ConstantTable* c
         case OP_MUL:   emit_imul(bc); break;
         case OP_DIV:   emit_idiv(bc); break;
         case OP_AND: {
-            // вычисляем левый операнд
-            emit_expr(bc, e->binop.left, cls, ct);
-            // stack: ..., a
 
             int j_false = emit_ifeq(bc);
             // if a == 0 -> goto false
@@ -134,7 +131,28 @@ void emit_expr(BytecodeBuffer *bc, ExprNode *e, ClassInfo *cls, ConstantTable* c
             patch_jump(bc, j_end, bc->size);
             break;
         }
-        case OP_OR:    bc_emit_u1(bc, 0x80); break; // ior
+        case OP_OR: {
+            // a уже сгенерировано, на стеке int
+
+            int j_true_a = emit_ifne(bc);   // if a != 0 → TRUE
+
+            // a == 0 → вычисляем b
+            emit_expr(bc, e->binop.right, cls, ct);
+
+            int j_true_b = emit_ifne(bc);   // if b != 0 → TRUE
+
+            // оба false
+            emit_iconst(bc, 0);
+            int j_end = emit_goto(bc);
+
+            // TRUE:
+            patch_jump(bc, j_true_a, bc->size);
+            patch_jump(bc, j_true_b, bc->size);
+            emit_iconst(bc, 1);
+
+            patch_jump(bc, j_end, bc->size);
+            break;
+        }
 
         case OP_LT: {
             int j_false = bc->size;

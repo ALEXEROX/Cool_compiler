@@ -76,6 +76,7 @@ void emit_new(BytecodeBuffer *bc, int class_index);
 void emit_checkcast(BytecodeBuffer *bc, int class_index);
 
 int emit_ifeq(BytecodeBuffer *bc);
+int emit_ifne(BytecodeBuffer *bc);
 int emit_goto(BytecodeBuffer *bc);
 void patch_jump(BytecodeBuffer *bc, int jump_pos, int target_pos);
 

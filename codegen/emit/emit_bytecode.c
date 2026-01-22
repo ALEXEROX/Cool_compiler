@@ -160,6 +160,16 @@ int emit_ifeq(BytecodeBuffer *bc) {
     return pos;
 }
 
+int emit_ifne(BytecodeBuffer *bc) {
+    int pos = bc->size;
+
+    bc_emit_u1(bc, 0x9A);  // ifne
+    bc_emit_u2(bc, 0);     // placeholder для смещения
+
+    return pos;
+}
+
+
 int emit_goto(BytecodeBuffer *bc) {
     int pos = bc->size;
     bc_emit_u1(bc, 0xA7); /* goto */
